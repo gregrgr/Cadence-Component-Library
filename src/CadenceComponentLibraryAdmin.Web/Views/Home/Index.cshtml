@@ -1,0 +1,61 @@
+@model CadenceComponentLibraryAdmin.Web.Models.HomeIndexViewModel
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h3 mb-3">Milestone 3 In Progress</h1>
+                <p class="text-muted mb-0">The project baseline is ready and the first group of internal CRUD pages is now wired for Company Parts, Manufacturer Parts, Symbol Families, Package Families, Footprint Variants, and Online Candidates.</p>
+            </div>
+        </div>
+    </div>
+
+    @foreach (var card in Model.Cards)
+    {
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6 text-uppercase text-muted">@card.Title</h2>
+                    <div class="display-6 fw-semibold mb-2">@card.Value</div>
+                    <p class="mb-0 text-muted">@card.Description</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Runtime</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Environment</dt>
+                    <dd class="col-sm-8">@Model.EnvironmentName</dd>
+                    <dt class="col-sm-4">Connection</dt>
+                    <dd class="col-sm-8"><code>@Model.ConnectionString</code></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h2 class="h5">Persistent Paths</h2>
+                <ul class="mb-0">
+                    <li><code>@Model.AppDataRoot</code></li>
+                    <li><code>@Model.LibraryRoot</code></li>
+                    <li><code>@Model.LogRoot</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="alert alert-info mb-0">
+            Initial administrator account:
+            <strong>admin@local.test</strong>
+            with password
+            <strong>Admin@123456</strong>
+        </div>
+    </div>
+</div>

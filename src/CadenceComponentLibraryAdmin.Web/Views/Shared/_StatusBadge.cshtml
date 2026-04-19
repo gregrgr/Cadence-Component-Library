@@ -1,0 +1,21 @@
+@model string?
+
+@{
+    var value = Model ?? string.Empty;
+    var badgeClass = value switch
+    {
+        "Approved" => "bg-success-subtle text-success-emphasis",
+        "Released" => "bg-success-subtle text-success-emphasis",
+        "PendingReview" => "bg-warning-subtle text-warning-emphasis",
+        "Reviewing" => "bg-warning-subtle text-warning-emphasis",
+        "Rejected" => "bg-danger-subtle text-danger-emphasis",
+        "Blocked" => "bg-danger-subtle text-danger-emphasis",
+        "Obsolete" => "bg-dark text-white",
+        "Nrnd" => "bg-secondary-subtle text-secondary-emphasis",
+        "Draft" => "bg-secondary-subtle text-secondary-emphasis",
+        "NewFromWeb" => "bg-info-subtle text-info-emphasis",
+        _ => "bg-light text-dark border"
+    };
+}
+
+<span class="badge rounded-pill @badgeClass">@value</span>

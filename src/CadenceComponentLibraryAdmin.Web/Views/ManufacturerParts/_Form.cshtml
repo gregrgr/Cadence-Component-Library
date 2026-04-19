@@ -1,0 +1,56 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.ManufacturerPart
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="CompanyPN" class="form-label"></label>
+        <select asp-for="CompanyPN" asp-items="ViewBag.CompanyParts" class="form-select"></select>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Manufacturer" class="form-label"></label>
+        <input asp-for="Manufacturer" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="ManufacturerPN" class="form-label"></label>
+        <input asp-for="ManufacturerPN" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="MfgDescription" class="form-label"></label>
+        <input asp-for="MfgDescription" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PackageCodeRaw" class="form-label"></label>
+        <input asp-for="PackageCodeRaw" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="SourceProvider" class="form-label"></label>
+        <input asp-for="SourceProvider" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="LifecycleStatus" class="form-label"></label>
+        <select asp-for="LifecycleStatus" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.LifecycleStatus>()" class="form-select"></select>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="VerifiedBy" class="form-label"></label>
+        <input asp-for="VerifiedBy" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="VerifiedAt" class="form-label"></label>
+        <input asp-for="VerifiedAt" class="form-control" type="datetime-local" />
+    </div>
+    <div class="col-12">
+        <label asp-for="ParamJson" class="form-label"></label>
+        <textarea asp-for="ParamJson" class="form-control" rows="4"></textarea>
+    </div>
+    <div class="col-12 d-flex gap-4">
+        <div class="form-check">
+            <input asp-for="IsApproved" class="form-check-input" />
+            <label asp-for="IsApproved" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="IsPreferred" class="form-check-input" />
+            <label asp-for="IsPreferred" class="form-check-label"></label>
+        </div>
+    </div>
+</div>

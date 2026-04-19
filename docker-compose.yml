@@ -1,0 +1,44 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cadencecomponentlibraryadmin-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "14333:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -C -Q \"SELECT 1\" || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 35s
+
+  web:
+    build:
+      context: .
+      dockerfile: src/CadenceComponentLibraryAdmin.Web/Dockerfile
+    container_name: cadencecomponentlibraryadmin-web
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT:-Development}"
+      ASPNETCORE_HTTP_PORTS: "${ASPNETCORE_HTTP_PORTS:-8080}"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=${DB_NAME:-CadenceComponentLibrary};User ID=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      FileStorage__AppDataRoot: "/app-data"
+      FileStorage__LibraryRoot: "/library"
+      FileStorage__LogRoot: "/logs"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./storage/app-data:/app-data
+      - ./library:/library
+      - ./storage/logs:/logs
+
+volumes:
+  sqlserver-data:
+

@@ -1,0 +1,67 @@
+@model CadenceComponentLibraryAdmin.Application.DTOs.QualityReportSummary
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Quality Reports</h1>
+        <div class="text-muted">Review library data quality before approval and release.</div>
+    </div>
+    <div class="badge bg-primary-subtle text-primary-emphasis fs-6">Total Findings: @Model.TotalFindings</div>
+</div>
+
+<div class="row g-3 mb-4">
+@foreach (var reportSection in Model.Sections)
+{
+    <div class="col-md-3">
+        <div class="page-card card h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase mb-2">@reportSection.Title</div>
+                <div class="display-6 fw-semibold">@reportSection.Count</div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@foreach (var reportSection in Model.Sections)
+{
+    <div class="page-card card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">@reportSection.Title</h2>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis">@reportSection.Count</span>
+                    <a asp-action="Export" asp-route-code="@reportSection.Code" class="btn btn-sm btn-outline-secondary">Export CSV</a>
+                </div>
+            </div>
+
+            @if (reportSection.Count == 0)
+            {
+                <div class="text-muted">No issues found.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Primary Key</th>
+                                <th>Title</th>
+                                <th>Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var item in reportSection.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.PrimaryKey</td>
+                                <td>@item.Title</td>
+                                <td>@item.Detail</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}

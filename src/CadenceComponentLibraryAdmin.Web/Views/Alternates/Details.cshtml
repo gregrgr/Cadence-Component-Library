@@ -1,0 +1,35 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.PartAlternate
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.SourceCompanyPN -> @Model.TargetCompanyPN</h1>
+        <div class="text-muted">Alternate relation details</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Alternate Level</dt>
+            <dd class="col-sm-9">@Model.AltLevel</dd>
+            <dt class="col-sm-3">Same Footprint</dt>
+            <dd class="col-sm-9">@(Model.SameFootprintYN ? "Yes" : "No")</dd>
+            <dt class="col-sm-3">Same Symbol</dt>
+            <dd class="col-sm-9">@(Model.SameSymbolYN ? "Yes" : "No")</dd>
+            <dt class="col-sm-3">Need EE Review</dt>
+            <dd class="col-sm-9">@(Model.NeedEEReviewYN ? "Yes" : "No")</dd>
+            <dt class="col-sm-3">Need Layout Review</dt>
+            <dd class="col-sm-9">@(Model.NeedLayoutReviewYN ? "Yes" : "No")</dd>
+            <dt class="col-sm-3">Approved By</dt>
+            <dd class="col-sm-9">@Model.ApprovedBy</dd>
+            <dt class="col-sm-3">Approved At</dt>
+            <dd class="col-sm-9">@Model.ApprovedAt</dd>
+            <dt class="col-sm-3">Notes</dt>
+            <dd class="col-sm-9">@Model.Notes</dd>
+        </dl>
+    </div>
+</div>

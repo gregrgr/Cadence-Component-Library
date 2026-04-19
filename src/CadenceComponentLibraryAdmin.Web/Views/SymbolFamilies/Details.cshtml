@@ -1,0 +1,33 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.SymbolFamily
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.SymbolFamilyCode</h1>
+        <div class="text-muted">@Model.SymbolName</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this symbol family?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Part Class</dt>
+            <dd class="col-sm-9">@Model.PartClass</dd>
+            <dt class="col-sm-3">OLB Path</dt>
+            <dd class="col-sm-9"><code>@Model.OlbPath</code></dd>
+            <dt class="col-sm-3">Gate Style</dt>
+            <dd class="col-sm-9">@Model.GateStyle</dd>
+            <dt class="col-sm-3">Pin Map Hash</dt>
+            <dd class="col-sm-9"><code>@Model.PinMapHash</code></dd>
+            <dt class="col-sm-3">Is Active</dt>
+            <dd class="col-sm-9">@(Model.IsActive ? "Yes" : "No")</dd>
+        </dl>
+    </div>
+</div>

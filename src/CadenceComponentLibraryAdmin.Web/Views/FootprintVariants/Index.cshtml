@@ -1,0 +1,62 @@
+@model CadenceComponentLibraryAdmin.Web.Models.PagedResult<CadenceComponentLibraryAdmin.Domain.Entities.FootprintVariant>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Footprint Variants</h1>
+        <div class="text-muted">Manage release states and library file paths for footprints.</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">New Footprint Variant</a>
+</div>
+
+<div class="page-card card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label">Search</label>
+                <input name="search" value="@ViewBag.Search" class="form-control" placeholder="Footprint / Package Family / Variant Type" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.FootprintStatus>()" class="form-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Footprint</th>
+                    <th>Package Family</th>
+                    <th>Variant Type</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td class="fw-semibold">@item.FootprintName</td>
+                    <td>@item.PackageFamilyCode</td>
+                    <td>@item.VariantType</td>
+                    <td><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@item.Status.ToString()" /></td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="~/Views/Shared/_Pagination.cshtml" model='new CadenceComponentLibraryAdmin.Web.Models.PagedResult<object> { Items = Array.Empty<object>(), Page = Model.Page, PageSize = Model.PageSize, TotalCount = Model.TotalCount }' />

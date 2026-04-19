@@ -1,0 +1,20 @@
+Allegro local library path settings
+
+Use these values in:
+Setup > User Preferences > Paths > Library
+
+psmpath
+E:\candence-sql\library\Cadence\Footprints
+
+padpath
+E:\candence-sql\library\Cadence\Padstacks
+E:\candence-sql\library\Cadence\Footprints
+
+steppath
+E:\candence-sql\library\Cadence\3D
+
+Recommended verification order
+1. Confirm `PCB_FOOTPRINT` in Capture matches the `.psm` file name.
+2. Confirm the `.psm` and `.dra` files are under `E:\candence-sql\library\Cadence\Footprints`.
+3. Confirm every required `.pad` file is under `E:\candence-sql\library\Cadence\Padstacks` or the footprint folder.
+4. Confirm every required `.step` file is under `E:\candence-sql\library\Cadence\3D`.

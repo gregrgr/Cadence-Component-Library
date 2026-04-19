@@ -1,0 +1,128 @@
+@model CadenceComponentLibraryAdmin.Web.Models.ApprovalQueueViewModel
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Approval Queue</h1>
+        <div class="text-muted">Review pending online candidates, company parts, and footprint variants.</div>
+    </div>
+</div>
+
+<div class="page-card card mb-3">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Online Candidates Pending Review</h2>
+        @if (Model.PendingOnlineCandidates.Count == 0)
+        {
+            <div class="text-muted">No online candidates waiting for review.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Manufacturer</th>
+                            <th>Manufacturer Part Number</th>
+                            <th>Source</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.PendingOnlineCandidates)
+                    {
+                        <tr>
+                            <td>@item.Manufacturer</td>
+                            <td class="fw-semibold">@item.ManufacturerPN</td>
+                            <td>@item.SourceProvider</td>
+                            <td class="text-end">
+                                <form asp-action="ApproveOnlineCandidate" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-success">Approve</button></form>
+                                <form asp-action="ReturnOnlineCandidate" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-secondary">Return</button></form>
+                                <form asp-action="RejectOnlineCandidate" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger">Reject</button></form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="page-card card mb-3">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Company Parts Pending Review</h2>
+        @if (Model.PendingCompanyParts.Count == 0)
+        {
+            <div class="text-muted">No company parts waiting for review.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Company Part Number</th>
+                            <th>Description</th>
+                            <th>Footprint</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.PendingCompanyParts)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@item.CompanyPN</td>
+                            <td>@item.Description</td>
+                            <td>@item.DefaultFootprintName</td>
+                            <td class="text-end">
+                                <form asp-action="ApproveCompanyPart" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-success">Approve</button></form>
+                                <form asp-action="ReturnCompanyPart" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-secondary">Return</button></form>
+                                <form asp-action="RejectCompanyPart" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger">Reject</button></form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Footprint Variants In Reviewing</h2>
+        @if (Model.ReviewingFootprints.Count == 0)
+        {
+            <div class="text-muted">No footprint variants waiting for review.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Footprint</th>
+                            <th>Package Family</th>
+                            <th>Variant Type</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.ReviewingFootprints)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@item.FootprintName</td>
+                            <td>@item.PackageFamilyCode</td>
+                            <td>@item.VariantType</td>
+                            <td class="text-end">
+                                <form asp-action="ApproveFootprint" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-success">Approve</button></form>
+                                <form asp-action="ReturnFootprint" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-secondary">Return</button></form>
+                                <form asp-action="RejectFootprint" asp-route-id="@item.Id" method="post" class="d-inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger">Reject</button></form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,13 @@
+.vs/
+.idea/
+
+**/bin/
+**/obj/
+
+.env
+
+storage/app-data/
+storage/logs/
+
+.DS_Store
+Thumbs.db

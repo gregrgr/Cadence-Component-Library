@@ -1,0 +1,65 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.OnlineCandidate
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.ManufacturerPN</h1>
+        <div class="text-muted">@Model.Manufacturer</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this online candidate?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="page-card card">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Source Provider</dt>
+                    <dd class="col-sm-8">@Model.SourceProvider</dd>
+                    <dt class="col-sm-4">Description</dt>
+                    <dd class="col-sm-8">@Model.Description</dd>
+                    <dt class="col-sm-4">Raw Package Name</dt>
+                    <dd class="col-sm-8">@Model.RawPackageName</dd>
+                    <dt class="col-sm-4">Mount Type</dt>
+                    <dd class="col-sm-8">@Model.MountType</dd>
+                    <dt class="col-sm-4">Lead Count</dt>
+                    <dd class="col-sm-8">@Model.LeadCount</dd>
+                    <dt class="col-sm-4">Package Size</dt>
+                    <dd class="col-sm-8">@Model.BodyLmm x @Model.BodyWmm</dd>
+                    <dt class="col-sm-4">Pitch</dt>
+                    <dd class="col-sm-8">@Model.PitchMm</dd>
+                    <dt class="col-sm-4">Exposed Pad</dt>
+                    <dd class="col-sm-8">@Model.EPLmm x @Model.EPWmm</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="page-card card">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Status</dt>
+                    <dd class="col-sm-7"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.CandidateStatus.ToString()" /></dd>
+                    <dt class="col-sm-5">Lifecycle</dt>
+                    <dd class="col-sm-7"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.LifecycleStatus.ToString()" /></dd>
+                    <dt class="col-sm-5">RoHS</dt>
+                    <dd class="col-sm-7">@Model.RoHS</dd>
+                    <dt class="col-sm-5">Datasheet</dt>
+                    <dd class="col-sm-7"><a href="@Model.DatasheetUrl" target="_blank">@Model.DatasheetUrl</a></dd>
+                    <dt class="col-sm-5">Symbol</dt>
+                    <dd class="col-sm-7">@(Model.SymbolDownloaded ? "Downloaded" : "Missing")</dd>
+                    <dt class="col-sm-5">Footprint</dt>
+                    <dd class="col-sm-7">@(Model.FootprintDownloaded ? "Downloaded" : "Missing")</dd>
+                    <dt class="col-sm-5">STEP</dt>
+                    <dd class="col-sm-7">@(Model.StepDownloaded ? "Downloaded" : "Missing")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

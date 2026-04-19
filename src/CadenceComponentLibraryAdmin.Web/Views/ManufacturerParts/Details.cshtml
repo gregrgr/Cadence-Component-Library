@@ -1,0 +1,43 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.ManufacturerPart
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.ManufacturerPN</h1>
+        <div class="text-muted">@Model.Manufacturer</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this manufacturer part?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Company Part Number</dt>
+            <dd class="col-sm-9">@Model.CompanyPN</dd>
+            <dt class="col-sm-3">Description</dt>
+            <dd class="col-sm-9">@Model.MfgDescription</dd>
+            <dt class="col-sm-3">Package Code</dt>
+            <dd class="col-sm-9">@Model.PackageCodeRaw</dd>
+            <dt class="col-sm-3">Source Provider</dt>
+            <dd class="col-sm-9">@Model.SourceProvider</dd>
+            <dt class="col-sm-3">Lifecycle</dt>
+            <dd class="col-sm-9"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.LifecycleStatus.ToString()" /></dd>
+            <dt class="col-sm-3">Approved</dt>
+            <dd class="col-sm-9">@(Model.IsApproved ? "Yes" : "No")</dd>
+            <dt class="col-sm-3">Preferred</dt>
+            <dd class="col-sm-9">@(Model.IsPreferred ? "Yes" : "No")</dd>
+            <dt class="col-sm-3">Verified By</dt>
+            <dd class="col-sm-9">@Model.VerifiedBy</dd>
+            <dt class="col-sm-3">Verified At</dt>
+            <dd class="col-sm-9">@Model.VerifiedAt</dd>
+            <dt class="col-sm-3">Supplier Offers</dt>
+            <dd class="col-sm-9">@Model.SupplierOffers.Count</dd>
+        </dl>
+    </div>
+</div>

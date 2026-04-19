@@ -1,0 +1,34 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.SymbolFamily
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="SymbolFamilyCode" class="form-label"></label>
+        <input asp-for="SymbolFamilyCode" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="SymbolName" class="form-label"></label>
+        <input asp-for="SymbolName" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PartClass" class="form-label"></label>
+        <input asp-for="PartClass" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="OlbPath" class="form-label"></label>
+        <input asp-for="OlbPath" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="GateStyle" class="form-label"></label>
+        <input asp-for="GateStyle" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="PinMapHash" class="form-label"></label>
+        <input asp-for="PinMapHash" class="form-control" />
+    </div>
+    <div class="col-12 form-check ms-2">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label"></label>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Web", "src\CadenceComponentLibraryAdmin.Web\CadenceComponentLibraryAdmin.Web.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Application", "src\CadenceComponentLibraryAdmin.Application\CadenceComponentLibraryAdmin.Application.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Domain", "src\CadenceComponentLibraryAdmin.Domain\CadenceComponentLibraryAdmin.Domain.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Infrastructure", "src\CadenceComponentLibraryAdmin.Infrastructure\CadenceComponentLibraryAdmin.Infrastructure.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A004}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Tests", "tests\CadenceComponentLibraryAdmin.Tests\CadenceComponentLibraryAdmin.Tests.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A005}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A47E2748-F91E-4D45-B7A2-0B73D555A001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

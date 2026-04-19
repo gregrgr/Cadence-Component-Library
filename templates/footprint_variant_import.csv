@@ -1,0 +1,5 @@
+FootprintName,PackageFamily,PsmPath,DraPath,PadstackSet,StepPath,VariantType,Status
+R_0603_1608Metric,R_0603_1608Metric,E:\candence-sql\library\Cadence\Footprints\R_0603_1608Metric.psm,E:\candence-sql\library\Cadence\Footprints\R_0603_1608Metric.dra,SMT_0603,E:\candence-sql\library\Cadence\3D\R_0603.step,IPC-B,Released
+C_0603_1608Metric,C_0603_1608Metric,E:\candence-sql\library\Cadence\Footprints\C_0603_1608Metric.psm,E:\candence-sql\library\Cadence\Footprints\C_0603_1608Metric.dra,SMT_0603,E:\candence-sql\library\Cadence\3D\C_0603.step,IPC-B,Released
+SOT23_5,SOT23_5,E:\candence-sql\library\Cadence\Footprints\SOT23_5.psm,E:\candence-sql\library\Cadence\Footprints\SOT23_5.dra,SOT23_PADSET,E:\candence-sql\library\Cadence\3D\SOT23_5.step,IPC-B,Released
+QFN32_5X5_P0.5_EP3.45X3.45_IPC-B,QFN32_5X5_P0.5_EP3.45X3.45,E:\candence-sql\library\Cadence\Footprints\QFN32_5X5_P0.5_EP3.45X3.45_IPC-B.psm,E:\candence-sql\library\Cadence\Footprints\QFN32_5X5_P0.5_EP3.45X3.45_IPC-B.dra,QFN32_0P5_EP,E:\candence-sql\library\Cadence\3D\QFN32_5X5.step,IPC-B,Released

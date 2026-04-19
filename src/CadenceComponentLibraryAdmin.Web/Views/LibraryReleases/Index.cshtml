@@ -1,0 +1,94 @@
+@model CadenceComponentLibraryAdmin.Web.Models.PagedResult<CadenceComponentLibraryAdmin.Domain.Entities.LibraryRelease>
+@{
+    var draft = (CadenceComponentLibraryAdmin.Application.DTOs.LibraryReleaseDraftDto)ViewBag.Draft;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Library Releases</h1>
+        <div class="text-muted">Create release drafts and publish quality-checked library snapshots.</div>
+    </div>
+</div>
+
+<div class="page-card card mb-4">
+    <div class="card-body">
+        <h2 class="h5 mb-3">New Draft Release</h2>
+        <form asp-action="CreateDraft" method="post" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Release Name</label>
+                <input class="form-control" value="@draft.ReleaseName" readonly />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Release Date</label>
+                <input class="form-control" value="@draft.ReleaseDate.ToString("yyyy-MM-dd")" readonly />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Approved Parts</label>
+                <input class="form-control" value="@draft.PartCount" readonly />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Released Footprints</label>
+                <input class="form-control" value="@draft.FootprintCount" readonly />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Active Symbols</label>
+                <input class="form-control" value="@draft.SymbolCount" readonly />
+            </div>
+            <div class="col-12">
+                <label class="form-label">Release Note</label>
+                <textarea name="releaseNote" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="col-12">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary">Create Draft</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Release Name</th>
+                    <th>Release Date</th>
+                    <th>Status</th>
+                    <th>Released By</th>
+                    <th>Counts</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td class="fw-semibold">@item.ReleaseName</td>
+                    <td>@item.ReleaseDate.ToString("yyyy-MM-dd")</td>
+                    <td><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@item.Status.ToString()" /></td>
+                    <td>@item.ReleasedBy</td>
+                    <td>P:@item.PartCount F:@item.FootprintCount S:@item.SymbolCount</td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                        @if (item.Status == CadenceComponentLibraryAdmin.Domain.Enums.ReleaseStatus.Draft)
+                        {
+                            <form asp-action="Release" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Run final release?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Release</button>
+                            </form>
+                        }
+                        @if (item.Status != CadenceComponentLibraryAdmin.Domain.Enums.ReleaseStatus.Archived)
+                        {
+                            <form asp-action="Archive" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Archive this release?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Archive</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<partial name="~/Views/Shared/_Pagination.cshtml" model='new CadenceComponentLibraryAdmin.Web.Models.PagedResult<object> { Items = Array.Empty<object>(), Page = Model.Page, PageSize = Model.PageSize, TotalCount = Model.TotalCount }' />

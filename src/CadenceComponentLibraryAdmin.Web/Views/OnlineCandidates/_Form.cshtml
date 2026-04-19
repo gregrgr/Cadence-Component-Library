@@ -1,0 +1,88 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.OnlineCandidate
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="SourceProvider" class="form-label"></label>
+        <input asp-for="SourceProvider" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Manufacturer" class="form-label"></label>
+        <input asp-for="Manufacturer" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="ManufacturerPN" class="form-label"></label>
+        <input asp-for="ManufacturerPN" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <input asp-for="Description" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="RawPackageName" class="form-label"></label>
+        <input asp-for="RawPackageName" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="MountType" class="form-label"></label>
+        <input asp-for="MountType" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="LeadCount" class="form-label"></label>
+        <input asp-for="LeadCount" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="PitchMm" class="form-label"></label>
+        <input asp-for="PitchMm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="BodyLmm" class="form-label"></label>
+        <input asp-for="BodyLmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="BodyWmm" class="form-label"></label>
+        <input asp-for="BodyWmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EPLmm" class="form-label"></label>
+        <input asp-for="EPLmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EPWmm" class="form-label"></label>
+        <input asp-for="EPWmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="LifecycleStatus" class="form-label"></label>
+        <select asp-for="LifecycleStatus" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.LifecycleStatus>()" class="form-select"></select>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="CandidateStatus" class="form-label"></label>
+        <select asp-for="CandidateStatus" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.CandidateStatus>()" class="form-select"></select>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="RoHS" class="form-label"></label>
+        <input asp-for="RoHS" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="DatasheetUrl" class="form-label"></label>
+        <input asp-for="DatasheetUrl" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="ImportNote" class="form-label"></label>
+        <textarea asp-for="ImportNote" class="form-control" rows="4"></textarea>
+    </div>
+    <div class="col-12 d-flex gap-4">
+        <div class="form-check">
+            <input asp-for="SymbolDownloaded" class="form-check-input" />
+            <label asp-for="SymbolDownloaded" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="FootprintDownloaded" class="form-check-input" />
+            <label asp-for="FootprintDownloaded" class="form-check-label"></label>
+        </div>
+        <div class="form-check">
+            <input asp-for="StepDownloaded" class="form-check-input" />
+            <label asp-for="StepDownloaded" class="form-check-label"></label>
+        </div>
+    </div>
+</div>

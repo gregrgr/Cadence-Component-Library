@@ -1,0 +1,73 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.CompanyPart
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="CompanyPN" class="form-label"></label>
+        <input asp-for="CompanyPN" class="form-control" />
+        <span asp-validation-for="CompanyPN" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PartClass" class="form-label"></label>
+        <input asp-for="PartClass" class="form-control" />
+        <span asp-validation-for="PartClass" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="ValueNorm" class="form-label"></label>
+        <input asp-for="ValueNorm" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <input asp-for="Description" class="form-control" />
+        <span asp-validation-for="Description" class="text-danger small"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="SymbolFamilyCode" class="form-label"></label>
+        <select asp-for="SymbolFamilyCode" asp-items="ViewBag.SymbolFamilies" class="form-select"></select>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PackageFamilyCode" class="form-label"></label>
+        <select asp-for="PackageFamilyCode" asp-items="ViewBag.PackageFamilies" class="form-select"></select>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="DefaultFootprintName" class="form-label"></label>
+        <select asp-for="DefaultFootprintName" asp-items="ViewBag.FootprintVariants" class="form-select"></select>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="ApprovalStatus" class="form-label"></label>
+        <select asp-for="ApprovalStatus" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.ApprovalStatus>()" class="form-select"></select>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="LifecycleStatus" class="form-label"></label>
+        <select asp-for="LifecycleStatus" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.LifecycleStatus>()" class="form-select"></select>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="AltGroup" class="form-label"></label>
+        <input asp-for="AltGroup" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="HeightMaxMm" class="form-label"></label>
+        <input asp-for="HeightMaxMm" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="TempRange" class="form-label"></label>
+        <input asp-for="TempRange" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="RoHS" class="form-label"></label>
+        <input asp-for="RoHS" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="REACHStatus" class="form-label"></label>
+        <input asp-for="REACHStatus" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="DatasheetUrl" class="form-label"></label>
+        <input asp-for="DatasheetUrl" class="form-control" />
+    </div>
+    <div class="col-md-3 form-check mt-4 ms-3">
+        <input asp-for="PreferredYN" class="form-check-input" />
+        <label asp-for="PreferredYN" class="form-check-label"></label>
+    </div>
+</div>

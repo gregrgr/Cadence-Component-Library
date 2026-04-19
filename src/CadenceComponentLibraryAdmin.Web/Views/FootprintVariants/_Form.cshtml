@@ -1,0 +1,38 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.FootprintVariant
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="FootprintName" class="form-label"></label>
+        <input asp-for="FootprintName" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="PackageFamilyCode" class="form-label"></label>
+        <select asp-for="PackageFamilyCode" asp-items="ViewBag.PackageFamilies" class="form-select"></select>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="PsmPath" class="form-label"></label>
+        <input asp-for="PsmPath" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="DraPath" class="form-label"></label>
+        <input asp-for="DraPath" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="PadstackSet" class="form-label"></label>
+        <input asp-for="PadstackSet" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="StepPath" class="form-label"></label>
+        <input asp-for="StepPath" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="VariantType" class="form-label"></label>
+        <input asp-for="VariantType" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.FootprintStatus>()" class="form-select"></select>
+    </div>
+</div>

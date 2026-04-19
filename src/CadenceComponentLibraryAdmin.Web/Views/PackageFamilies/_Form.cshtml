@@ -1,0 +1,55 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.PackageFamily
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label asp-for="PackageFamilyCode" class="form-label"></label>
+        <input asp-for="PackageFamilyCode" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="MountType" class="form-label"></label>
+        <input asp-for="MountType" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="LeadCount" class="form-label"></label>
+        <input asp-for="LeadCount" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="BodyLmm" class="form-label"></label>
+        <input asp-for="BodyLmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="BodyWmm" class="form-label"></label>
+        <input asp-for="BodyWmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="PitchMm" class="form-label"></label>
+        <input asp-for="PitchMm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EPLmm" class="form-label"></label>
+        <input asp-for="EPLmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="EPWmm" class="form-label"></label>
+        <input asp-for="EPWmm" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="DensityLevel" class="form-label"></label>
+        <input asp-for="DensityLevel" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label asp-for="PackageStd" class="form-label"></label>
+        <input asp-for="PackageStd" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label asp-for="PackageSignature" class="form-label"></label>
+        <input asp-for="PackageSignature" class="form-control" readonly placeholder="Auto-generated on save" />
+        <div class="form-text">Package Signature is generated automatically from mount type, lead count, body size, pitch, and exposed pad size.</div>
+    </div>
+    <div class="col-12">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+    </div>
+</div>

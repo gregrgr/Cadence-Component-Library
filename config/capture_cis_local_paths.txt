@@ -1,0 +1,40 @@
+Capture and CIS local resource settings
+
+Recommended `.dbc` file
+E:\candence-sql\library\Cadence\Config\CadenceCIS_Release.dbc
+
+Recommended data source
+DSN name: CadenceCIS_SQL
+Table or view: dbo.vw_CIS_Release_Parts
+
+Current schematic library targets referenced by sample database rows
+E:\candence-sql\library\Cadence\Symbols_OLB\Passive\Resistors.OLB
+E:\candence-sql\library\Cadence\Symbols_OLB\Passive\Capacitors.OLB
+E:\candence-sql\library\Cadence\Symbols_OLB\Passive\Inductors.OLB
+E:\candence-sql\library\Cadence\Symbols_OLB\Power\Voltage_Regulators.OLB
+
+Configured libraries list still needs these files added explicitly
+E:\candence-sql\library\Cadence\Symbols_OLB\Passive\Resistors.OLB
+E:\candence-sql\library\Cadence\Symbols_OLB\Passive\Capacitors.OLB
+E:\candence-sql\library\Cadence\Symbols_OLB\Passive\Inductors.OLB
+E:\candence-sql\library\Cadence\Symbols_OLB\Power\Voltage_Regulators.OLB
+
+Required field mapping
+Part Number Field = COMPANY_PN
+Schematic Part Field = SCHEMATIC_PART
+Schematic Library Field = SCHEMATIC_LIBRARY
+Printed Circuit Board Footprint Field = PCB_FOOTPRINT
+Description Field = DESCRIPTION
+Value Field = VALUE
+
+Recommended instance properties
+COMPANY_PN
+DESCRIPTION
+VALUE
+MANUFACTURER_NAME
+MANUFACTURER_PART_NUMBER
+PCB_FOOTPRINT
+ALT_GROUP
+LIFECYCLE_STATUS
+ROHS
+DATASHEET_URL

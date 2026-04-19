@@ -1,0 +1,70 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.CompanyPart
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.CompanyPN</h1>
+        <div class="text-muted">@Model.Description</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this company part?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="page-card card h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Base Information</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Part Class</dt>
+                    <dd class="col-sm-8">@Model.PartClass</dd>
+                    <dt class="col-sm-4">Value</dt>
+                    <dd class="col-sm-8">@Model.ValueNorm</dd>
+                    <dt class="col-sm-4">Symbol Family</dt>
+                    <dd class="col-sm-8">@Model.SymbolFamilyCode</dd>
+                    <dt class="col-sm-4">Package Family</dt>
+                    <dd class="col-sm-8">@Model.PackageFamilyCode</dd>
+                    <dt class="col-sm-4">Default Footprint</dt>
+                    <dd class="col-sm-8">@Model.DefaultFootprintName</dd>
+                    <dt class="col-sm-4">Approval</dt>
+                    <dd class="col-sm-8"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.ApprovalStatus.ToString()" /></dd>
+                    <dt class="col-sm-4">Lifecycle</dt>
+                    <dd class="col-sm-8"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.LifecycleStatus.ToString()" /></dd>
+                    <dt class="col-sm-4">Datasheet</dt>
+                    <dd class="col-sm-8"><a href="@Model.DatasheetUrl" target="_blank">@Model.DatasheetUrl</a></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="page-card card mb-3">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Compliance</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">RoHS</dt>
+                    <dd class="col-sm-7">@Model.RoHS</dd>
+                    <dt class="col-sm-5">REACH</dt>
+                    <dd class="col-sm-7">@Model.REACHStatus</dd>
+                    <dt class="col-sm-5">Temp Range</dt>
+                    <dd class="col-sm-7">@Model.TempRange</dd>
+                    <dt class="col-sm-5">Height Max</dt>
+                    <dd class="col-sm-7">@Model.HeightMaxMm</dd>
+                    <dt class="col-sm-5">Alt Group</dt>
+                    <dd class="col-sm-7">@Model.AltGroup</dd>
+                </dl>
+            </div>
+        </div>
+        <div class="page-card card">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Related</h2>
+                <div class="mb-2">Manufacturer Parts: <strong>@Model.ManufacturerParts.Count</strong></div>
+                <div>Documents: <strong>@Model.Documents.Count</strong></div>
+            </div>
+        </div>
+    </div>
+</div>

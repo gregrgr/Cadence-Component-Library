@@ -1,0 +1,67 @@
+@model CadenceComponentLibraryAdmin.Domain.Entities.PackageFamily
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.PackageFamilyCode</h1>
+        <div class="text-muted">Package signature and geometry overview</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this package family?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="page-card card">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Mount Type</dt>
+                    <dd class="col-sm-8">@Model.MountType</dd>
+                    <dt class="col-sm-4">Lead Count</dt>
+                    <dd class="col-sm-8">@Model.LeadCount</dd>
+                    <dt class="col-sm-4">Body L</dt>
+                    <dd class="col-sm-8">@Model.BodyLmm</dd>
+                    <dt class="col-sm-4">Body W</dt>
+                    <dd class="col-sm-8">@Model.BodyWmm</dd>
+                    <dt class="col-sm-4">Pitch</dt>
+                    <dd class="col-sm-8">@Model.PitchMm</dd>
+                    <dt class="col-sm-4">EP L</dt>
+                    <dd class="col-sm-8">@Model.EPLmm</dd>
+                    <dt class="col-sm-4">EP W</dt>
+                    <dd class="col-sm-8">@Model.EPWmm</dd>
+                    <dt class="col-sm-4">Density Level</dt>
+                    <dd class="col-sm-8">@Model.DensityLevel</dd>
+                    <dt class="col-sm-4">Package Standard</dt>
+                    <dd class="col-sm-8">@Model.PackageStd</dd>
+                    <dt class="col-sm-4">Package Signature</dt>
+                    <dd class="col-sm-8"><code>@Model.PackageSignature</code></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="page-card card h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Referenced Footprints</h2>
+                @if (Model.FootprintVariants.Count == 0)
+                {
+                    <div class="text-muted">No footprint variants linked yet.</div>
+                }
+                else
+                {
+                    <ul class="mb-0">
+                    @foreach (var item in Model.FootprintVariants)
+                    {
+                        <li>@item.FootprintName</li>
+                    }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

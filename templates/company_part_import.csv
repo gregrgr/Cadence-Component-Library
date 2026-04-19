@@ -1,0 +1,4 @@
+CompanyPN,PartClass,Description,ValueNorm,SymbolFamily,PackageFamily,DefaultFootprint,ApprovalStatus,AltGroup,PreferredYN,HeightMaxMM,TempRange,RoHS,REACHStatus,LifecycleStatus,DatasheetURL
+CPN-R-000001,R,RES 10K 1% 0603,10k,RES_2PIN,R_0603_1608Metric,R_0603_1608Metric,APPROVED,ALT-R-10K-0603,1,0.55,-55~155C,Compliant,Compliant,ACTIVE,https://example.com/datasheet.pdf
+CPN-C-000001,C,CAP 100nF 10% 0603 X7R 50V,100nF,CAP_2PIN,C_0603_1608Metric,C_0603_1608Metric,APPROVED,ALT-C-100N-0603,1,0.90,-55~125C,Compliant,Compliant,ACTIVE,https://example.com/datasheet.pdf
+CPN-IC-000001,IC,LDO 3.3V 500mA SOT23-5,3.3V,LDO_5PIN,SOT23_5,SOT23_5,APPROVED,ALT-LDO-3V3-500MA,1,1.45,-40~125C,Compliant,Compliant,ACTIVE,https://example.com/datasheet.pdf

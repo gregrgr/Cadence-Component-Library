@@ -1,0 +1,5 @@
+PackageFamily,MountType,LeadCount,BodyL_mm,BodyW_mm,Pitch_mm,EP_L_mm,EP_W_mm,DensityLevel,PackageStd,Notes
+R_0603_1608Metric,SMT,2,1.60,0.80,,0,0,IPC-B,IPC-7351,Common resistor 0603 metric
+C_0603_1608Metric,SMT,2,1.60,0.80,,0,0,IPC-B,IPC-7351,Common capacitor 0603 metric
+SOT23_5,SMT,5,2.90,1.60,0.95,0,0,IPC-B,JEDEC,Generic SOT23-5 family
+QFN32_5X5_P0.5_EP3.45X3.45,SMT,32,5.00,5.00,0.50,3.45,3.45,IPC-B,JEDEC/Manufacturer,QFN32 with exposed pad
