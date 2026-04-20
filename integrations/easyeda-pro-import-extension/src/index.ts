@@ -12,7 +12,7 @@ declare const eda: any;
 
 interface ConnectorSettings {
   backendBaseUrl: string;
-  importApiKey: string;
+  importToken: string;
   defaultLibraryUuid?: string;
 }
 
@@ -31,13 +31,13 @@ export async function configureConnector(): Promise<void> {
     return;
   }
 
-  const importApiKey = prompt('X-Import-Api-Key', existing.importApiKey || '');
-  if (!importApiKey) {
+  const importToken = prompt('X-Import-Token', existing.importToken || '');
+  if (!importToken) {
     return;
   }
 
   const defaultLibraryUuid = prompt('Default EasyEDA library UUID (optional)', existing.defaultLibraryUuid || '') || undefined;
-  saveSettings({ backendBaseUrl, importApiKey, defaultLibraryUuid });
+  saveSettings({ backendBaseUrl, importToken, defaultLibraryUuid });
   alert('Connector settings saved.');
 }
 
@@ -163,7 +163,7 @@ async function postImport(payload: any, settings: ConnectorSettings): Promise<an
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Import-Api-Key': settings.importApiKey
+      'X-Import-Token': settings.importToken
     },
     body: JSON.stringify(stripTransportOnlyFields(payload))
   });
@@ -200,7 +200,7 @@ async function uploadAsset(
   const response = await fetch(`${trimSlash(settings.backendBaseUrl)}/api/import/easyeda/component/${importId}/asset`, {
     method: 'POST',
     headers: {
-      'X-Import-Api-Key': settings.importApiKey
+      'X-Import-Token': settings.importToken
     },
     body: formData
   });
@@ -229,7 +229,7 @@ async function uploadUrlAssetIfPresent(
   const response = await fetch(`${trimSlash(settings.backendBaseUrl)}/api/import/easyeda/component/${importId}/asset`, {
     method: 'POST',
     headers: {
-      'X-Import-Api-Key': settings.importApiKey
+      'X-Import-Token': settings.importToken
     },
     body: formData
   });
@@ -269,7 +269,7 @@ function loadSettings(): ConnectorSettings {
   if (!rawValue) {
     return {
       backendBaseUrl: 'http://localhost:8080',
-      importApiKey: ''
+      importToken: ''
     };
   }
 
@@ -278,7 +278,7 @@ function loadSettings(): ConnectorSettings {
   } catch {
     return {
       backendBaseUrl: 'http://localhost:8080',
-      importApiKey: ''
+      importToken: ''
     };
   }
 }
@@ -289,7 +289,7 @@ function saveSettings(settings: ConnectorSettings): void {
 
 function ensureSettings(): ConnectorSettings {
   const settings = loadSettings();
-  if (!settings.backendBaseUrl || !settings.importApiKey) {
+  if (!settings.backendBaseUrl || !settings.importToken) {
     throw new Error('Connector settings are incomplete. Run Configure Connector first.');
   }
 

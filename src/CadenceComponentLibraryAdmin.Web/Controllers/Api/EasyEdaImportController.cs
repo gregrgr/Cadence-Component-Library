@@ -12,14 +12,20 @@ namespace CadenceComponentLibraryAdmin.Web.Controllers.Api;
 public sealed class EasyEdaImportController : ControllerBase
 {
     private readonly IExternalImportService _externalImportService;
+    private readonly IExternalImportTokenService _externalImportTokenService;
     private readonly ExternalImportOptions _options;
+    private readonly IHostEnvironment _environment;
 
     public EasyEdaImportController(
         IExternalImportService externalImportService,
-        IOptions<ExternalImportOptions> options)
+        IExternalImportTokenService externalImportTokenService,
+        IOptions<ExternalImportOptions> options,
+        IHostEnvironment environment)
     {
         _externalImportService = externalImportService;
+        _externalImportTokenService = externalImportTokenService;
         _options = options.Value;
+        _environment = environment;
     }
 
     [HttpPost("component")]
@@ -27,15 +33,21 @@ public sealed class EasyEdaImportController : ControllerBase
         [FromBody] EasyEdaComponentImportRequest request,
         CancellationToken cancellationToken)
     {
-        if (!HasValidApiKey())
+        var authorization = await ValidateImportAuthorizationAsync(request.SourceName, cancellationToken);
+        if (!authorization.IsAuthorized)
         {
             return Unauthorized();
         }
 
         var result = await _externalImportService.UpsertEasyEdaComponentAsync(
             request,
-            actor: "easyeda-import-api",
+            actor: authorization.ActorEmail ?? "easyeda-import-token",
             cancellationToken);
+
+        if (authorization.TokenId.HasValue)
+        {
+            await _externalImportTokenService.MarkUsedAsync(authorization.TokenId.Value, cancellationToken);
+        }
 
         return Ok(new
         {
@@ -57,7 +69,8 @@ public sealed class EasyEdaImportController : ControllerBase
         [FromForm] string? rawMetadataJson,
         CancellationToken cancellationToken)
     {
-        if (!HasValidApiKey())
+        var authorization = await ValidateImportAuthorizationAsync("EasyEDA Pro", cancellationToken);
+        if (!authorization.IsAuthorized)
         {
             return Unauthorized();
         }
@@ -79,8 +92,13 @@ public sealed class EasyEdaImportController : ControllerBase
                 externalUuid,
                 url,
                 rawMetadataJson),
-            actor: "easyeda-import-api",
+            actor: authorization.ActorEmail ?? "easyeda-import-token",
             cancellationToken);
+
+        if (authorization.TokenId.HasValue)
+        {
+            await _externalImportTokenService.MarkUsedAsync(authorization.TokenId.Value, cancellationToken);
+        }
 
         return Ok(new
         {
@@ -105,19 +123,31 @@ public sealed class EasyEdaImportController : ControllerBase
         });
     }
 
-    private bool HasValidApiKey()
+    private async Task<ImportAuthorizationResult> ValidateImportAuthorizationAsync(string? sourceName, CancellationToken cancellationToken)
     {
+        if (Request.Headers.TryGetValue("X-Import-Token", out var providedToken))
+        {
+            var validation = await _externalImportTokenService.ValidateTokenAsync(
+                providedToken.ToString(),
+                string.IsNullOrWhiteSpace(sourceName) ? "EasyEDA Pro" : sourceName.Trim(),
+                Request.Headers.Origin.ToString(),
+                cancellationToken);
+
+            return new ImportAuthorizationResult(validation.IsValid, validation.Token?.Id, validation.ActorEmail);
+        }
+
         var expectedApiKey = _options.EasyEdaApiKey;
-        if (string.IsNullOrWhiteSpace(expectedApiKey))
+        if (_environment.IsDevelopment() &&
+            _options.AllowLegacyApiKeyInDevelopment &&
+            !string.IsNullOrWhiteSpace(expectedApiKey) &&
+            Request.Headers.TryGetValue("X-Import-Api-Key", out var providedApiKey) &&
+            string.Equals(expectedApiKey, providedApiKey.ToString(), StringComparison.Ordinal))
         {
-            return false;
+            return new ImportAuthorizationResult(true, null, "legacy-api-key");
         }
 
-        if (!Request.Headers.TryGetValue("X-Import-Api-Key", out var providedApiKey))
-        {
-            return false;
-        }
-
-        return string.Equals(expectedApiKey, providedApiKey.ToString(), StringComparison.Ordinal);
+        return new ImportAuthorizationResult(false, null, null);
     }
+
+    private sealed record ImportAuthorizationResult(bool IsAuthorized, long? TokenId, string? ActorEmail);
 }

@@ -36,6 +36,14 @@
         <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
         @if (User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer"))
         {
+            @if (Model.LcscEnrichmentEnabled)
+            {
+                <form asp-action="EnrichFromLcsc" method="post" onsubmit="return confirm('Enrich this staged import from the official LCSC Open API?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button type="submit" class="btn btn-outline-primary">Enrich from LCSC</button>
+                </form>
+            }
             <form asp-action="CreateCandidate" method="post" onsubmit="return confirm('Create an Online Candidate from this staged import?');">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@item.Id" />
@@ -78,8 +86,12 @@
                     <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(item.DuplicateWarning) ? "None" : item.DuplicateWarning)</dd>
                     <dt class="col-sm-4">Import Status</dt>
                     <dd class="col-sm-8"><span class="badge text-bg-light border">@item.ImportStatus</span></dd>
+                    <dt class="col-sm-4">LCSC Enrichment</dt>
+                    <dd class="col-sm-8"><span class="badge text-bg-light border">@item.LcscEnrichmentStatus</span> @item.LcscEnrichmentMessage</dd>
                     <dt class="col-sm-4">Candidate</dt>
                     <dd class="col-sm-8">@(item.CandidateId.HasValue ? $"OnlineCandidate #{item.CandidateId}" : "Not created")</dd>
+                    <dt class="col-sm-4">LCSC Enriched At</dt>
+                    <dd class="col-sm-8">@(item.LcscEnrichedAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never")</dd>
                 </dl>
             </div>
         </div>
@@ -135,6 +147,7 @@
                     <li class="nav-item" role="presentation"><button class="nav-link" id="assoc-tab" data-bs-toggle="tab" data-bs-target="#assoc-json" type="button">Association</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link" id="prop-tab" data-bs-toggle="tab" data-bs-target="#prop-json" type="button">Property</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-json" type="button">OtherProperty</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="lcsc-tab" data-bs-toggle="tab" data-bs-target="#lcsc-json" type="button">LCSC Raw</button></li>
                     <li class="nav-item" role="presentation"><button class="nav-link" id="full-tab" data-bs-toggle="tab" data-bs-target="#full-json" type="button">FullRaw</button></li>
                 </ul>
                 <div class="tab-content border border-top-0 rounded-bottom p-3">
@@ -143,6 +156,7 @@
                     <div class="tab-pane fade" id="assoc-json"><pre class="mb-0 small">@Pretty(item.DeviceAssociationRawJson)</pre></div>
                     <div class="tab-pane fade" id="prop-json"><pre class="mb-0 small">@Pretty(item.DevicePropertyRawJson)</pre></div>
                     <div class="tab-pane fade" id="other-json"><pre class="mb-0 small">@Pretty(item.OtherPropertyRawJson)</pre></div>
+                    <div class="tab-pane fade" id="lcsc-json"><pre class="mb-0 small">@Pretty(item.LcscRawJson)</pre></div>
                     <div class="tab-pane fade" id="full-json"><pre class="mb-0 small">@Pretty(item.FullRawJson)</pre></div>
                 </div>
             </div>

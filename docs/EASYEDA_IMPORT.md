@@ -6,6 +6,8 @@ The connector is intentionally split:
 
 - The EasyEDA Pro extension runs inside the EasyEDA Pro editor and calls the EasyEDA Pro SDK.
 - The ASP.NET Core backend receives normalized payloads and assets over authenticated import APIs.
+- The backend authorizes ingest with short-lived import tokens tied to authenticated backend users.
+- Optional LCSC enrichment runs only through the official LCSC Open API key/secret model.
 - Imported data lands only in staging tables:
   - `ExternalImportSources`
   - `ExternalComponentImports`
@@ -32,7 +34,18 @@ flowchart LR
     I --> K["/ExternalImports review UI"]
     K --> L["POST create-candidate"]
     L --> M["OnlineCandidates staging"]
+    K --> N["POST enrich-from-lcsc"]
+    N --> O["Official LCSC Open API"]
 ```
+
+## Authentication model
+
+- EasyEDA Pro SDK calls run only inside an already logged-in EasyEDA Pro editor session.
+- The extension must not scrape, extract, store, or forward EasyEDA / LCSC cookies, SSO tokens, passwords, or browser localStorage session values.
+- Backend ingest is authorized by `X-Import-Token`.
+- Import tokens are created in `/Admin/ExternalImportTokens`, stored only as hashes, scoped by source, revocable, and time-limited.
+- `X-Import-Api-Key` is now only a deprecated Development fallback when enabled intentionally.
+- Optional LCSC enrichment uses official LCSC Open API credentials (`ApiKey` + `ApiSecret`) only on the backend.
 
 ## Confirmed SDK APIs
 
@@ -150,11 +163,13 @@ Large binary payloads are not stored in SQL Server.
 
 ## Security notes
 
-- Import ingest endpoints require `X-Import-Api-Key`.
-- The API key comes from `ExternalImports:EasyEdaApiKey`.
+- Import ingest endpoints require `X-Import-Token`.
+- The token is created in `/Admin/ExternalImportTokens` and the raw value is shown only once.
+- `X-Import-Api-Key` may remain enabled only as a Development fallback for local transition scenarios.
 - `create-candidate` requires an authenticated application user with `Admin`, `Librarian`, or `EEReviewer`.
+- LCSC `ApiSecret` must come from environment variables or user secrets and must never be stored in the database.
 - No public unauthenticated page can create approved library records.
-- The API key is not embedded in the extension source, sample payloads, or repository defaults.
+- No EasyEDA / LCSC cookies, passwords, SSO tokens, or session values are extracted or stored.
 
 ## API smoke examples
 
@@ -163,7 +178,7 @@ Import a component payload:
 ```bash
 curl -X POST "http://localhost:8080/api/import/easyeda/component" \
   -H "Content-Type: application/json" \
-  -H "X-Import-Api-Key: <your-key>" \
+  -H "X-Import-Token: <your-token>" \
   --data @docs/samples/easyeda/component-with-symbol-footprint-3d.json
 ```
 
@@ -171,7 +186,7 @@ Upload a thumbnail or footprint render image:
 
 ```bash
 curl -X POST "http://localhost:8080/api/import/easyeda/component/123/asset" \
-  -H "X-Import-Api-Key: <your-key>" \
+  -H "X-Import-Token: <your-token>" \
   -F "assetType=FootprintRenderImage" \
   -F "file=@./preview.png" \
   -F "externalUuid=img-preview-001" \
@@ -182,7 +197,7 @@ Upload a STEP asset:
 
 ```bash
 curl -X POST "http://localhost:8080/api/import/easyeda/component/123/asset" \
-  -H "X-Import-Api-Key: <your-key>" \
+  -H "X-Import-Token: <your-token>" \
   -F "assetType=Step" \
   -F "file=@./part.step" \
   -F "rawMetadataJson={\"source\":\"manual-export\"}"
@@ -198,9 +213,29 @@ curl -X POST "http://localhost:8080/api/import/easyeda/component/123/create-cand
 
 The `create-candidate` endpoint is intentionally separate from the import ingest flow:
 
-- import APIs are API-key protected
+- import APIs are import-token protected
 - candidate creation requires an authenticated app user
 - neither flow creates an approved `CompanyPart`
+
+## LCSC Open API enrichment
+
+- Required setup:
+  - apply for official LCSC Open API access
+  - configure `LcscOpenApi:Enabled`, `BaseUrl`, `ApiKey`, `ApiSecret`, and `Currency`
+- Signature model:
+  - `nonce` = 16-character random string
+  - `timestamp` = current Unix timestamp
+  - `signature = sha1("key={key}&nonce={nonce}&secret={secret}&timestamp={timestamp}")`
+- Current workflow:
+  - enrichment is explicit from the `External Import Details` page
+  - if `LcscId` exists, the backend calls item details directly
+  - otherwise the backend searches by `ManufacturerPN`, then follows up with item details
+  - results only update staging fields and raw JSON on `ExternalComponentImport`
+- Compliance notes:
+  - respect LCSC timestamp validation and rate limits
+  - do not bulk scrape or reverse-engineer endpoints
+  - do not automatically download datasheets/images unless configuration and API terms allow it
+  - enrichment never creates approved `CompanyParts`
 
 ## Known limitations
 

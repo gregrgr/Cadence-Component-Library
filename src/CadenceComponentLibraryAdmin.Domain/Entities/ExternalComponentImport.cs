@@ -62,6 +62,10 @@ public sealed class ExternalComponentImport : BaseEntity
     public string? DevicePropertyRawJson { get; set; }
     public string? OtherPropertyRawJson { get; set; }
     public string? FullRawJson { get; set; }
+    public string? LcscRawJson { get; set; }
+    public DateTime? LcscEnrichedAt { get; set; }
+    public LcscEnrichmentStatus LcscEnrichmentStatus { get; set; }
+    public string? LcscEnrichmentMessage { get; set; }
 
     public ExternalImportStatus ImportStatus { get; set; }
     public string? DuplicateWarning { get; set; }

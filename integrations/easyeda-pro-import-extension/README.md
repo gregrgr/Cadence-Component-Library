@@ -45,12 +45,14 @@ Settings:
 
 - `backendBaseUrl`
   - example: `http://localhost:8080`
-- `importApiKey`
-  - must match backend `ExternalImports:EasyEdaApiKey`
+- `importToken`
+  - create this in backend `/Admin/ExternalImportTokens`
+  - paste it once into the extension settings
 - `defaultLibraryUuid`
   - optional
 
 The extension stores these settings locally in browser storage for the EasyEDA Pro runtime.
+It does not extract or transmit EasyEDA / LCSC cookies, passwords, localStorage session values, or SSO tokens.
 
 ## CI-safe validation
 
@@ -88,8 +90,10 @@ The backend must expose:
 
 Security:
 
-- the extension sends `X-Import-Api-Key`
-- anonymous import without the API key is not supported
+- the extension sends `X-Import-Token`
+- the backend validates a short-lived import token created by an authenticated backend user
+- anonymous import is not supported
+- the extension does not read or forward EasyEDA session credentials
 
 ## What gets preserved
 

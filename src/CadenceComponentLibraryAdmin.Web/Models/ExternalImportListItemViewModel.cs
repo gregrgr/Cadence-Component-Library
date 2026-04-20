@@ -48,4 +48,5 @@ public sealed class ExternalImportDetailsViewModel
 {
     public ExternalComponentImport Import { get; init; } = null!;
     public IReadOnlyList<ExternalComponentAsset> Assets { get; init; } = [];
+    public bool LcscEnrichmentEnabled { get; init; }
 }

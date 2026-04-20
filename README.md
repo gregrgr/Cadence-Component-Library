@@ -24,6 +24,7 @@ The repository currently includes:
   - `Alternates`
   - `Users / Roles` administration
   - `External Imports`
+  - `External Import Tokens`
   - `Change Logs`
   - `Quality Reports`
   - `Library Releases`
@@ -164,9 +165,18 @@ Backend endpoints:
 
 Security:
 
-- ingest endpoints require `X-Import-Api-Key`
-- configure the shared key with `ExternalImports:EasyEdaApiKey`
-- `.env.example` contains a placeholder only; do not commit a real import key
+- ingest endpoints require `X-Import-Token`
+- import tokens are created from `/Admin/ExternalImportTokens`
+- tokens are hashed at rest and the raw token is shown only once
+- `X-Import-Api-Key` can remain as a deprecated Development-only fallback only when enabled intentionally
+- do not extract or forward EasyEDA / LCSC cookies, passwords, localStorage tokens, or SSO values
+
+Optional LCSC enrichment:
+
+- configure `LcscOpenApi:Enabled`, `ApiKey`, and `ApiSecret`
+- `ApiSecret` should come from environment variables or user secrets, not source control
+- these are official LCSC Open API credentials, not unified-account passwords
+- enrichment remains staging-only and never auto-approves a `CompanyPart`
 
 Storage:
 
@@ -200,6 +210,7 @@ Extension install/config details:
 - see `integrations/easyeda-pro-import-extension/README.md`
 - see `docs/EASYEDA_IMPORT.md`
 - sample payloads are under `docs/samples/easyeda/`
+- backend-generated import tokens are managed at `/Admin/ExternalImportTokens`
 
 ## Running locally
 
@@ -380,6 +391,8 @@ Important indexes:
 - The baseline migration is formalized, but future schema changes still need deliberate migration discipline.
 - The application still relies on ASP.NET Core Identity UI defaults for interactive sign-in and password policies.
 - The EasyEDA Pro connector depends on BETA extension APIs and best-effort document discovery.
+- LCSC Open API enrichment uses official key/secret signing and remains subject to LCSC rate limits and terms.
+- EasyEDA / LCSC SSO credentials and session cookies must not be extracted or stored.
 - The EasyEDA extension build is CI-safe, but direct SDK calls still require the EasyEDA Pro editor runtime.
 - Automated vendor download, footprint generation, `.olb` generation, ERP / PLM sync, and advanced multi-step workflows are not implemented yet.
 

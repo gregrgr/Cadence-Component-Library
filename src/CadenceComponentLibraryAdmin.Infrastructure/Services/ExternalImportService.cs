@@ -18,13 +18,19 @@ public sealed class ExternalImportService : IExternalImportService
 
     private readonly ApplicationDbContext _dbContext;
     private readonly ExternalImportOptions _options;
+    private readonly ILcscOpenApiClient _lcscOpenApiClient;
+    private readonly LcscOpenApiOptions _lcscOpenApiOptions;
 
     public ExternalImportService(
         ApplicationDbContext dbContext,
-        IOptions<ExternalImportOptions> options)
+        IOptions<ExternalImportOptions> options,
+        ILcscOpenApiClient lcscOpenApiClient,
+        IOptions<LcscOpenApiOptions> lcscOpenApiOptions)
     {
         _dbContext = dbContext;
         _options = options.Value;
+        _lcscOpenApiClient = lcscOpenApiClient;
+        _lcscOpenApiOptions = lcscOpenApiOptions.Value;
     }
 
     public async Task<ExternalImportUpsertResult> UpsertEasyEdaComponentAsync(
@@ -86,6 +92,7 @@ public sealed class ExternalImportService : IExternalImportService
         entity.DevicePropertyRawJson = NormalizeJson(request.DevicePropertyRawJson);
         entity.OtherPropertyRawJson = NormalizeJson(request.OtherPropertyRawJson);
         entity.FullRawJson = NormalizeJson(request.FullRawJson);
+        entity.LcscEnrichmentMessage ??= null;
         entity.LastImportedAt = DateTime.UtcNow;
         entity.UpdatedBy = actor;
 
@@ -224,6 +231,87 @@ public sealed class ExternalImportService : IExternalImportService
         import.ImportStatus = ExternalImportStatus.Rejected;
         import.UpdatedBy = actor;
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<ExternalImportEnrichmentResult> EnrichFromLcscAsync(long importId, string actor, CancellationToken cancellationToken = default)
+    {
+        var import = await _dbContext.ExternalComponentImports
+            .FirstOrDefaultAsync(x => x.Id == importId, cancellationToken)
+            ?? throw new InvalidOperationException($"External import '{importId}' was not found.");
+
+        if (!_lcscOpenApiClient.IsEnabled)
+        {
+            import.LcscEnrichmentStatus = LcscEnrichmentStatus.Disabled;
+            import.LcscEnrichmentMessage = "LCSC Open API enrichment is disabled.";
+            import.UpdatedBy = actor;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return new ExternalImportEnrichmentResult(false, import.LcscEnrichmentMessage);
+        }
+
+        LcscProductInfoResponse? productInfo = null;
+        string? resolutionMessage = null;
+
+        if (!string.IsNullOrWhiteSpace(import.LcscId))
+        {
+            productInfo = await _lcscOpenApiClient.GetProductInfoAsync(import.LcscId, cancellationToken);
+            resolutionMessage = $"Queried LCSC product {import.LcscId}.";
+        }
+        else if (!string.IsNullOrWhiteSpace(import.ManufacturerPN))
+        {
+            var search = await _lcscOpenApiClient.SearchProductsAsync(import.ManufacturerPN, 1, 10, "exact", cancellationToken);
+            if (search.Success && search.Products.Count > 0 && !string.IsNullOrWhiteSpace(search.Products[0].ProductNumber))
+            {
+                productInfo = await _lcscOpenApiClient.GetProductInfoAsync(search.Products[0].ProductNumber!, cancellationToken);
+                resolutionMessage = $"Resolved by ManufacturerPN search: {search.Products[0].ProductNumber}.";
+            }
+            else
+            {
+                import.LcscRawJson = search.RawJson;
+                import.LcscEnrichedAt = DateTime.UtcNow;
+                import.LcscEnrichmentStatus = LcscEnrichmentStatus.NotFound;
+                import.LcscEnrichmentMessage = search.Message ?? "No LCSC product was found for the ManufacturerPN search.";
+                import.UpdatedBy = actor;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return new ExternalImportEnrichmentResult(false, import.LcscEnrichmentMessage);
+            }
+        }
+        else
+        {
+            import.LcscEnrichedAt = DateTime.UtcNow;
+            import.LcscEnrichmentStatus = LcscEnrichmentStatus.NotFound;
+            import.LcscEnrichmentMessage = "Neither LCSC ID nor ManufacturerPN is available for enrichment.";
+            import.UpdatedBy = actor;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return new ExternalImportEnrichmentResult(false, import.LcscEnrichmentMessage);
+        }
+
+        import.LcscEnrichedAt = DateTime.UtcNow;
+        import.LcscRawJson = productInfo.RawJson;
+        import.LcscEnrichmentStatus = productInfo.Success ? LcscEnrichmentStatus.Succeeded : LcscEnrichmentStatus.Error;
+        import.LcscEnrichmentMessage = productInfo.Success
+            ? resolutionMessage
+            : (productInfo.Message ?? "LCSC enrichment failed.");
+
+        if (productInfo.Success)
+        {
+            import.LcscId ??= Normalize(productInfo.ProductNumber);
+            import.Manufacturer ??= Normalize(productInfo.Manufacturer);
+            import.ManufacturerPN ??= Normalize(productInfo.ManufacturerPartNumber);
+            import.Description ??= Normalize(productInfo.ProductDescEn);
+            import.LcscInventory = productInfo.StockNumber ?? import.LcscInventory;
+            import.LcscPrice = productInfo.LowestPrice ?? import.LcscPrice;
+            import.DatasheetUrl ??= Normalize(productInfo.DatasheetUrl);
+
+            if (_lcscOpenApiOptions.AllowAssetDownloads)
+            {
+                await CreateUrlAssetIfMissingAsync(import, ExternalComponentAssetType.Datasheet, productInfo.DatasheetUrl, actor, cancellationToken);
+                await CreateUrlAssetIfMissingAsync(import, ExternalComponentAssetType.Thumbnail, productInfo.ProductImages, actor, cancellationToken);
+            }
+        }
+
+        import.UpdatedBy = actor;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return new ExternalImportEnrichmentResult(productInfo.Success, import.LcscEnrichmentMessage ?? string.Empty);
     }
 
     private async Task LinkAssetAsync(
@@ -397,6 +485,52 @@ public sealed class ExternalImportService : IExternalImportService
 
     private static string? Normalize(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? TryGetUrlFileName(string url)
+    {
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            return Path.GetFileName(uri.AbsolutePath);
+        }
+
+        return null;
+    }
+
+    private async Task CreateUrlAssetIfMissingAsync(
+        ExternalComponentImport import,
+        ExternalComponentAssetType assetType,
+        string? url,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var normalizedUrl = Normalize(url);
+        if (normalizedUrl is null)
+        {
+            return;
+        }
+
+        var exists = await _dbContext.ExternalComponentAssets.AnyAsync(
+            x => x.ExternalComponentImportId == import.Id && x.AssetType == assetType && x.Url == normalizedUrl,
+            cancellationToken);
+        if (exists)
+        {
+            return;
+        }
+
+        var asset = new ExternalComponentAsset
+        {
+            SourceName = import.SourceName,
+            ExternalComponentImportId = import.Id,
+            AssetType = assetType,
+            Url = normalizedUrl,
+            OriginalFileName = TryGetUrlFileName(normalizedUrl),
+            CreatedBy = actor
+        };
+
+        _dbContext.ExternalComponentAssets.Add(asset);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await LinkAssetAsync(import, asset, actor, cancellationToken);
+    }
 
     private static string? NormalizeJson(string? value)
     {

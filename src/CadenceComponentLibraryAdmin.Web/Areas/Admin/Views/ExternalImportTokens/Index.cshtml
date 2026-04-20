@@ -1,0 +1,52 @@
+@model CadenceComponentLibraryAdmin.Web.Models.ExternalImportTokensIndexViewModel
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">External Import Tokens</h1>
+        <div class="text-muted">Short-lived backend import tokens for staging-only EasyEDA pushes.</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Create Token</a>
+</div>
+
+<div class="page-card card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Source</th>
+                    <th>Created By</th>
+                    <th>Expires At</th>
+                    <th>Last Used</th>
+                    <th>Status</th>
+                    <th>Allowed Origins</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var token in Model.Tokens)
+            {
+                var status = token.IsRevoked ? "Revoked" : token.IsExpired ? "Expired" : "Active";
+                <tr>
+                    <td class="fw-semibold">@token.DisplayName</td>
+                    <td>@token.SourceName</td>
+                    <td>@token.CreatedByUserEmail</td>
+                    <td>@token.ExpiresAt.ToString("yyyy-MM-dd HH:mm") UTC</td>
+                    <td>@(token.LastUsedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                    <td><span class="badge text-bg-light border">@status</span></td>
+                    <td class="small text-muted">@token.AllowedOrigins</td>
+                    <td class="text-end">
+                        @if (!token.IsRevoked)
+                        {
+                            <form asp-action="Revoke" asp-route-id="@token.Id" method="post" class="d-inline" onsubmit="return confirm('Revoke this import token?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Revoke</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

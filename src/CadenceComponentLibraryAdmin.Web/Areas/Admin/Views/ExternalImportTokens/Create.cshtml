@@ -1,0 +1,47 @@
+@model CadenceComponentLibraryAdmin.Web.Models.ExternalImportTokenCreateViewModel
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Create External Import Token</h1>
+        <div class="text-muted">The raw token will be shown only once after creation.</div>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+</div>
+
+<div class="page-card card">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-md-6">
+                <label asp-for="DisplayName" class="form-label"></label>
+                <input asp-for="DisplayName" class="form-control" />
+                <span asp-validation-for="DisplayName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="SourceName" class="form-label"></label>
+                <input asp-for="SourceName" class="form-control" />
+                <span asp-validation-for="SourceName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ExpiresAt" class="form-label"></label>
+                <input asp-for="ExpiresAt" type="datetime-local" class="form-control" value="@Model.ExpiresAt.ToString("yyyy-MM-ddTHH:mm")" />
+                <span asp-validation-for="ExpiresAt" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AllowedOrigins" class="form-label"></label>
+                <input asp-for="AllowedOrigins" class="form-control" placeholder="https://pro.easyeda.com" />
+                <span asp-validation-for="AllowedOrigins" class="text-danger small"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" rows="3" class="form-control"></textarea>
+                <span asp-validation-for="Notes" class="text-danger small"></span>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create Token</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

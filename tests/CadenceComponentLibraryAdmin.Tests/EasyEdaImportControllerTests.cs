@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -21,7 +22,7 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     private readonly string _storageRoot = Path.Combine(Path.GetTempPath(), "cadence-easyeda-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public async Task MissingApiKey_ReturnsUnauthorized()
+    public async Task MissingImportToken_ReturnsUnauthorized()
     {
         await using var dbContext = CreateDbContext();
         var controller = CreateApiController(dbContext);
@@ -32,10 +33,10 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task InvalidApiKey_ReturnsUnauthorized()
+    public async Task InvalidImportToken_ReturnsUnauthorized()
     {
         await using var dbContext = CreateDbContext();
-        var controller = CreateApiController(dbContext, "wrong-key");
+        var controller = CreateApiController(dbContext, tokenHeader: "wrong-token");
 
         var result = await controller.ImportComponent(CreateRequest(), CancellationToken.None);
 
@@ -43,10 +44,48 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ValidImport_CreatesExternalComponentImport()
+    public async Task ExpiredImportToken_ReturnsUnauthorized()
     {
         await using var dbContext = CreateDbContext();
-        var controller = CreateApiController(dbContext, "test-key");
+        var tokenService = CreateTokenService(dbContext);
+        var created = await tokenService.CreateTokenAsync(
+            new ExternalImportTokenCreateRequest("expired", "EasyEDA Pro", DateTime.UtcNow.AddMinutes(-5), null, null),
+            "user-1",
+            "admin@local.test");
+        var controller = CreateApiController(dbContext, tokenHeader: created.RawToken);
+
+        var result = await controller.ImportComponent(CreateRequest(), CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task RevokedImportToken_ReturnsUnauthorized()
+    {
+        await using var dbContext = CreateDbContext();
+        var tokenService = CreateTokenService(dbContext);
+        var created = await tokenService.CreateTokenAsync(
+            new ExternalImportTokenCreateRequest("revoked", "EasyEDA Pro", DateTime.UtcNow.AddDays(1), null, null),
+            "user-1",
+            "admin@local.test");
+        await tokenService.RevokeTokenAsync(created.Token.Id, "user-2", "admin@local.test");
+        var controller = CreateApiController(dbContext, tokenHeader: created.RawToken);
+
+        var result = await controller.ImportComponent(CreateRequest(), CancellationToken.None);
+
+        Assert.IsType<UnauthorizedResult>(result);
+    }
+
+    [Fact]
+    public async Task ValidImportToken_CreatesExternalComponentImport()
+    {
+        await using var dbContext = CreateDbContext();
+        var tokenService = CreateTokenService(dbContext);
+        var created = await tokenService.CreateTokenAsync(
+            new ExternalImportTokenCreateRequest("valid", "EasyEDA Pro", DateTime.UtcNow.AddDays(30), null, null),
+            "user-1",
+            "admin@local.test");
+        var controller = CreateApiController(dbContext, tokenHeader: created.RawToken);
 
         var result = await controller.ImportComponent(CreateRequest(), CancellationToken.None);
 
@@ -56,6 +95,24 @@ public sealed class EasyEdaImportControllerTests : IDisposable
         Assert.Equal("dev-001", entity.ExternalDeviceUuid);
         Assert.Equal("ACME", entity.Manufacturer);
         Assert.Equal("{}", entity.ClassificationJson);
+        Assert.Equal(0, await dbContext.CompanyParts.CountAsync());
+    }
+
+    [Fact]
+    public async Task LastUsedAt_IsUpdatedAfterSuccessfulImport()
+    {
+        await using var dbContext = CreateDbContext();
+        var tokenService = CreateTokenService(dbContext);
+        var created = await tokenService.CreateTokenAsync(
+            new ExternalImportTokenCreateRequest("last-used", "EasyEDA Pro", DateTime.UtcNow.AddDays(30), null, null),
+            "user-1",
+            "admin@local.test");
+        var controller = CreateApiController(dbContext, tokenHeader: created.RawToken);
+
+        await controller.ImportComponent(CreateRequest(), CancellationToken.None);
+
+        var entity = await dbContext.ExternalImportTokens.SingleAsync();
+        Assert.True(entity.LastUsedAt.HasValue);
     }
 
     [Fact]
@@ -271,6 +328,20 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task EnrichFromLcsc_WhenDisabled_DoesNotCallRemoteAndStoresDisabledStatus()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = CreateService(dbContext);
+        var import = await service.UpsertEasyEdaComponentAsync(CreateRequest(), "tester");
+
+        var result = await service.EnrichFromLcscAsync(import.ImportId, "tester");
+
+        Assert.False(result.Success);
+        var entity = await dbContext.ExternalComponentImports.SingleAsync();
+        Assert.Equal(LcscEnrichmentStatus.Disabled, entity.LcscEnrichmentStatus);
+    }
+
+    [Fact]
     public void ExternalImportsPage_RequiresLogin()
     {
         var authorizeAttribute = Assert.Single(typeof(ExternalImportsController).GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true));
@@ -313,20 +384,32 @@ public sealed class EasyEdaImportControllerTests : IDisposable
             {
                 EasyEdaApiKey = "test-key",
                 StorageRoot = _storageRoot
-            }));
+            }),
+            new StubLcscOpenApiClient(),
+            Options.Create(new LcscOpenApiOptions()));
     }
 
-    private EasyEdaImportController CreateApiController(ApplicationDbContext dbContext, string? apiKeyHeader = null)
+    private ExternalImportTokenService CreateTokenService(ApplicationDbContext dbContext)
+        => new(dbContext);
+
+    private EasyEdaImportController CreateApiController(ApplicationDbContext dbContext, string? tokenHeader = null, string? apiKeyHeader = null)
     {
         var controller = new EasyEdaImportController(
             CreateService(dbContext),
+            CreateTokenService(dbContext),
             Options.Create(new ExternalImportOptions
             {
                 EasyEdaApiKey = "test-key",
                 StorageRoot = _storageRoot
-            }));
+            }),
+            new FakeHostEnvironment());
 
         var httpContext = new DefaultHttpContext();
+        if (!string.IsNullOrWhiteSpace(tokenHeader))
+        {
+            httpContext.Request.Headers["X-Import-Token"] = tokenHeader;
+        }
+
         if (!string.IsNullOrWhiteSpace(apiKeyHeader))
         {
             httpContext.Request.Headers["X-Import-Api-Key"] = apiKeyHeader;
@@ -432,5 +515,24 @@ public sealed class EasyEdaImportControllerTests : IDisposable
         });
 
         await dbContext.SaveChangesAsync();
+    }
+
+    private sealed class StubLcscOpenApiClient : ILcscOpenApiClient
+    {
+        public bool IsEnabled => false;
+
+        public Task<LcscSearchProductsResponse> SearchProductsAsync(string keyword, int page, int pageSize, string exactOrFuzzy, CancellationToken cancellationToken = default)
+            => Task.FromResult(new LcscSearchProductsResponse(false, "disabled", null, []));
+
+        public Task<LcscProductInfoResponse> GetProductInfoAsync(string productNumber, CancellationToken cancellationToken = default)
+            => Task.FromResult(new LcscProductInfoResponse(false, "disabled", null, null, null, null, null, null, null, null, null, null));
+    }
+
+    private sealed class FakeHostEnvironment : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Development;
+        public string ApplicationName { get; set; } = "Tests";
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
     }
 }

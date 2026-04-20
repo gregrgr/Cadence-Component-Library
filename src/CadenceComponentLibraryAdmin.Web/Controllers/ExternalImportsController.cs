@@ -17,15 +17,18 @@ public sealed class ExternalImportsController : Controller
     private readonly ApplicationDbContext _dbContext;
     private readonly IExternalImportService _externalImportService;
     private readonly ExternalImportOptions _options;
+    private readonly LcscOpenApiOptions _lcscOptions;
 
     public ExternalImportsController(
         ApplicationDbContext dbContext,
         IExternalImportService externalImportService,
-        IOptions<ExternalImportOptions> options)
+        IOptions<ExternalImportOptions> options,
+        IOptions<LcscOpenApiOptions> lcscOptions)
     {
         _dbContext = dbContext;
         _externalImportService = externalImportService;
         _options = options.Value;
+        _lcscOptions = lcscOptions.Value;
     }
 
     public async Task<IActionResult> Index(
@@ -200,7 +203,8 @@ public sealed class ExternalImportsController : Controller
         return View(new ExternalImportDetailsViewModel
         {
             Import = import,
-            Assets = assets
+            Assets = assets,
+            LcscEnrichmentEnabled = _lcscOptions.Enabled
         });
     }
 
@@ -257,6 +261,16 @@ public sealed class ExternalImportsController : Controller
     {
         await _externalImportService.RejectImportAsync(id, User.Identity?.Name ?? "system");
         TempData["SuccessMessage"] = "External import rejected.";
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Librarian,EEReviewer")]
+    public async Task<IActionResult> EnrichFromLcsc(long id)
+    {
+        var result = await _externalImportService.EnrichFromLcscAsync(id, User.Identity?.Name ?? "system");
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Message;
         return RedirectToAction(nameof(Details), new { id });
     }
 }

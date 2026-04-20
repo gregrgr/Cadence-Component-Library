@@ -48,6 +48,7 @@ public sealed class ExternalComponentImportConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.ManualUrl).HasMaxLength(1000);
         builder.Property(x => x.StepUrl).HasMaxLength(1000);
         builder.Property(x => x.DuplicateWarning).HasMaxLength(2000);
+        builder.Property(x => x.LcscEnrichmentMessage).HasMaxLength(2000);
         builder.Property(x => x.JlcPrice).HasPrecision(18, 6);
         builder.Property(x => x.LcscPrice).HasPrecision(18, 6);
 

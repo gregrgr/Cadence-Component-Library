@@ -1,0 +1,30 @@
+@model CadenceComponentLibraryAdmin.Web.Models.ExternalImportTokenCreatedViewModel
+
+<div class="page-card card">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Import Token Created</h1>
+        <div class="alert alert-warning" role="alert">
+            Copy this token now. It will not be shown again.
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Display Name</dt>
+            <dd class="col-sm-9">@Model.DisplayName</dd>
+            <dt class="col-sm-3">Source</dt>
+            <dd class="col-sm-9">@Model.SourceName</dd>
+            <dt class="col-sm-3">Expires At</dt>
+            <dd class="col-sm-9">@Model.ExpiresAt.ToString("yyyy-MM-dd HH:mm") UTC</dd>
+            <dt class="col-sm-3">Allowed Origins</dt>
+            <dd class="col-sm-9">@Model.AllowedOrigins</dd>
+            <dt class="col-sm-3">Raw Token</dt>
+            <dd class="col-sm-9">
+                <code class="d-block p-3 border rounded bg-light">@Model.RawToken</code>
+            </dd>
+        </dl>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-primary">Back to Tokens</a>
+            <a asp-area="" asp-controller="ExternalImports" asp-action="Index" class="btn btn-outline-secondary">Go to External Imports</a>
+        </div>
+    </div>
+</div>

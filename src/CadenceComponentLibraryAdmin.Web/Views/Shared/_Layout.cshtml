@@ -109,6 +109,10 @@
                     <a class="nav-link @(currentArea == "Admin" && currentController == "Users" ? "active" : string.Empty)" asp-area="Admin" asp-controller="Users" asp-action="Index">Admin Users</a>
                     <a class="nav-link @(currentArea == "Admin" && currentController == "Roles" ? "active" : string.Empty)" asp-area="Admin" asp-controller="Roles" asp-action="Index">Admin Roles</a>
                 }
+                @if (isAdmin || isLibrarian)
+                {
+                    <a class="nav-link @(currentArea == "Admin" && currentController == "ExternalImportTokens" ? "active" : string.Empty)" asp-area="Admin" asp-controller="ExternalImportTokens" asp-action="Index">Import Tokens</a>
+                }
             </nav>
         </aside>
 

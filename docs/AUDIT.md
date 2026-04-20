@@ -123,3 +123,17 @@ Remaining limitations:
 - `LIB_Device.getByLcscIds` may not work in private deployments.
 - `LIB_Footprint.getRenderImage` is treated as best-effort because it was not confirmed through the public reference index used during implementation.
 - STEP binaries may not always be obtainable directly from the SDK runtime, so URL preservation remains part of the design.
+
+## Milestone B3.2 Result
+
+- Static EasyEDA import API keys are no longer the primary auth model.
+- `/Admin/ExternalImportTokens` now creates short-lived, hashed import tokens and supports revocation / last-used tracking.
+- EasyEDA ingest now prefers `X-Import-Token`; legacy `X-Import-Api-Key` is only an optional Development fallback.
+- The extension configuration now uses `importToken` and explicitly forbids cookie / password / SSO token extraction.
+- Optional LCSC Open API enrichment is wired through official key/secret signing and remains staging-only.
+- LCSC enrichment updates staging supply fields and raw JSON without auto-approving `CompanyParts`.
+
+Remaining limitations:
+
+- LCSC enrichment is best-effort and depends on the officially provisioned Open API account and rate limits.
+- Datasheet / image asset downloading remains configuration-gated and conservative by default.

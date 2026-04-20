@@ -32,8 +32,14 @@ services:
       FileStorage__AppDataRoot: "/app-data"
       FileStorage__LibraryRoot: "/library"
       FileStorage__LogRoot: "/logs"
-      ExternalImports__EasyEdaApiKey: "${EASYEDA_IMPORT_API_KEY:-change-me}"
+      ExternalImports__EasyEdaApiKey: "${EASYEDA_IMPORT_API_KEY:-}"
+      ExternalImports__AllowLegacyApiKeyInDevelopment: "${ALLOW_LEGACY_IMPORT_API_KEY_IN_DEVELOPMENT:-false}"
       ExternalImports__StorageRoot: "/app-data/ExternalImports"
+      LcscOpenApi__Enabled: "${LCSC_OPEN_API_ENABLED:-false}"
+      LcscOpenApi__BaseUrl: "https://ips.lcsc.com"
+      LcscOpenApi__ApiKey: "${LCSC_OPEN_API_KEY:-}"
+      LcscOpenApi__ApiSecret: "${LCSC_OPEN_API_SECRET:-}"
+      LcscOpenApi__Currency: "${LCSC_OPEN_API_CURRENCY:-USD}"
     ports:
       - "8080:8080"
     volumes:

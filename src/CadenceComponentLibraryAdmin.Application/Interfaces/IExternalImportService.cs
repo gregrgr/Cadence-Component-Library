@@ -26,6 +26,11 @@ public interface IExternalImportService
         long importId,
         string actor,
         CancellationToken cancellationToken = default);
+
+    Task<ExternalImportEnrichmentResult> EnrichFromLcscAsync(
+        long importId,
+        string actor,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record EasyEdaComponentImportRequest
@@ -101,3 +106,7 @@ public sealed record ExternalImportAssetUpload(
     string? ExternalUuid,
     string? Url,
     string? RawMetadataJson);
+
+public sealed record ExternalImportEnrichmentResult(
+    bool Success,
+    string Message);
