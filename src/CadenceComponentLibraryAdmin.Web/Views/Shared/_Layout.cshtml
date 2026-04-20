@@ -57,6 +57,7 @@
         var canViewManufacturerParts = isAdmin || isLibrarian || isEeReviewer || isPurchasing || isViewer;
         var canViewAlternates = isAdmin || isLibrarian || isEeReviewer || isViewer;
         var canViewOnlineCandidates = isAdmin || isLibrarian || isEeReviewer || isPurchasing || isDesigner;
+        var canViewExternalImports = isAdmin || isLibrarian || isEeReviewer || isPurchasing || isDesigner;
     }
     <div class="d-flex app-shell">
         <aside class="sidebar text-white p-3 d-none d-lg-block">
@@ -70,6 +71,10 @@
                 @if (canViewOnlineCandidates)
                 {
                     <a class="nav-link @(currentController == "OnlineCandidates" ? "active" : string.Empty)" asp-controller="OnlineCandidates" asp-action="Index">Online Candidates</a>
+                }
+                @if (canViewExternalImports)
+                {
+                    <a class="nav-link @(currentController == "ExternalImports" ? "active" : string.Empty)" asp-controller="ExternalImports" asp-action="Index">External Imports</a>
                 }
                 @if (canViewCompanyParts)
                 {

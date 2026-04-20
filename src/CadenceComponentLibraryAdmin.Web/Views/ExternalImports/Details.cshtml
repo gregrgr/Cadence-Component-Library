@@ -1,0 +1,192 @@
+@using System.Text.Json
+@using CadenceComponentLibraryAdmin.Domain.Enums
+@model CadenceComponentLibraryAdmin.Web.Models.ExternalImportDetailsViewModel
+
+@functions {
+    private string Pretty(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "No data";
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(value);
+            return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (JsonException)
+        {
+            return value;
+        }
+    }
+}
+
+@{
+    ViewData["Title"] = "External Import Details";
+    var item = Model.Import;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">External Import Details</h1>
+        <p class="text-muted mb-0">Staging-only EasyEDA import. No approved library data is created from this page.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        @if (User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer"))
+        {
+            <form asp-action="CreateCandidate" method="post" onsubmit="return confirm('Create an Online Candidate from this staged import?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@item.Id" />
+                <button type="submit" class="btn btn-primary" @(item.CandidateId.HasValue ? "disabled" : null)>Create Online Candidate</button>
+            </form>
+            <form asp-action="Reject" method="post" onsubmit="return confirm('Reject this external import?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@item.Id" />
+                <button type="submit" class="btn btn-outline-danger">Reject Import</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Basic Info</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@item.Name</dd>
+                    <dt class="col-sm-4">Source</dt>
+                    <dd class="col-sm-8">@item.SourceName</dd>
+                    <dt class="col-sm-4">Device UUID</dt>
+                    <dd class="col-sm-8">@item.ExternalDeviceUuid</dd>
+                    <dt class="col-sm-4">Library UUID</dt>
+                    <dd class="col-sm-8">@item.ExternalLibraryUuid</dd>
+                    <dt class="col-sm-4">LCSC ID</dt>
+                    <dd class="col-sm-8">@item.LcscId</dd>
+                    <dt class="col-sm-4">Manufacturer</dt>
+                    <dd class="col-sm-8">@item.Manufacturer</dd>
+                    <dt class="col-sm-4">Manufacturer PN</dt>
+                    <dd class="col-sm-8">@item.ManufacturerPN</dd>
+                    <dt class="col-sm-4">Description</dt>
+                    <dd class="col-sm-8">@item.Description</dd>
+                    <dt class="col-sm-4">Classification</dt>
+                    <dd class="col-sm-8"><pre class="mb-0 small">@Pretty(item.ClassificationJson)</pre></dd>
+                    <dt class="col-sm-4">Duplicate Warning</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(item.DuplicateWarning) ? "None" : item.DuplicateWarning)</dd>
+                    <dt class="col-sm-4">Import Status</dt>
+                    <dd class="col-sm-8"><span class="badge text-bg-light border">@item.ImportStatus</span></dd>
+                    <dt class="col-sm-4">Candidate</dt>
+                    <dd class="col-sm-8">@(item.CandidateId.HasValue ? $"OnlineCandidate #{item.CandidateId}" : "Not created")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Associations</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h3 class="h6">Supplier</h3>
+                        <p class="mb-1">@item.Supplier</p>
+                        <p class="text-muted small mb-0">@item.SupplierId</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="h6">Symbol</h3>
+                        <p class="mb-1">@item.SymbolName</p>
+                        <p class="text-muted small mb-0">@item.SymbolUuid / @item.SymbolLibraryUuid</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="h6">Footprint</h3>
+                        <p class="mb-1">@item.FootprintName</p>
+                        <p class="text-muted small mb-0">@item.FootprintUuid / @item.FootprintLibraryUuid</p>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-4">
+                        <h3 class="h6">3D Model</h3>
+                        <p class="mb-1">@item.Model3DName</p>
+                        <p class="text-muted small mb-0">@item.Model3DUuid / @item.Model3DLibraryUuid</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="h6">Supply</h3>
+                        <div class="small">JLC: @item.JlcInventory / @item.JlcPrice</div>
+                        <div class="small">LCSC: @item.LcscInventory / @item.LcscPrice</div>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="h6">Documents</h3>
+                        <div class="small">Datasheet: @item.DatasheetUrl</div>
+                        <div class="small">Manual: @item.ManualUrl</div>
+                        <div class="small">STEP: @item.StepUrl</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card page-card">
+            <div class="card-body">
+                <h2 class="h5">Raw JSON</h2>
+                <ul class="nav nav-tabs" id="rawJsonTabs" role="tablist">
+                    <li class="nav-item" role="presentation"><button class="nav-link active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-json" type="button">SearchItem</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="device-tab" data-bs-toggle="tab" data-bs-target="#device-json" type="button">DeviceItem</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="assoc-tab" data-bs-toggle="tab" data-bs-target="#assoc-json" type="button">Association</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="prop-tab" data-bs-toggle="tab" data-bs-target="#prop-json" type="button">Property</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-json" type="button">OtherProperty</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="full-tab" data-bs-toggle="tab" data-bs-target="#full-json" type="button">FullRaw</button></li>
+                </ul>
+                <div class="tab-content border border-top-0 rounded-bottom p-3">
+                    <div class="tab-pane fade show active" id="search-json"><pre class="mb-0 small">@Pretty(item.SearchItemRawJson)</pre></div>
+                    <div class="tab-pane fade" id="device-json"><pre class="mb-0 small">@Pretty(item.DeviceItemRawJson)</pre></div>
+                    <div class="tab-pane fade" id="assoc-json"><pre class="mb-0 small">@Pretty(item.DeviceAssociationRawJson)</pre></div>
+                    <div class="tab-pane fade" id="prop-json"><pre class="mb-0 small">@Pretty(item.DevicePropertyRawJson)</pre></div>
+                    <div class="tab-pane fade" id="other-json"><pre class="mb-0 small">@Pretty(item.OtherPropertyRawJson)</pre></div>
+                    <div class="tab-pane fade" id="full-json"><pre class="mb-0 small">@Pretty(item.FullRawJson)</pre></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Preview</h2>
+                @if (item.FootprintRenderAssetId.HasValue)
+                {
+                    <img src="@Url.Action("Asset", new { id = item.FootprintRenderAssetId })" alt="footprint render" class="img-fluid rounded border mb-3" />
+                }
+                else
+                {
+                    <p class="text-muted">No thumbnail or footprint render uploaded.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card page-card">
+            <div class="card-body">
+                <h2 class="h5">Linked Assets</h2>
+                @if (Model.Assets.Count == 0)
+                {
+                    <p class="text-muted mb-0">No assets linked.</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var asset in Model.Assets)
+                        {
+                            <li class="list-group-item px-0">
+                                <div class="fw-semibold">@asset.AssetType</div>
+                                <div class="small text-muted">@asset.OriginalFileName</div>
+                                <div class="small text-muted">@asset.Url</div>
+                                <div class="small text-muted">@asset.Sha256</div>
+                                <a asp-action="Asset" asp-route-id="@asset.Id" class="small">Open asset</a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

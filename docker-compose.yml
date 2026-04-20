@@ -32,6 +32,8 @@ services:
       FileStorage__AppDataRoot: "/app-data"
       FileStorage__LibraryRoot: "/library"
       FileStorage__LogRoot: "/logs"
+      ExternalImports__EasyEdaApiKey: "${EASYEDA_IMPORT_API_KEY:-change-me}"
+      ExternalImports__StorageRoot: "/app-data/ExternalImports"
     ports:
       - "8080:8080"
     volumes:

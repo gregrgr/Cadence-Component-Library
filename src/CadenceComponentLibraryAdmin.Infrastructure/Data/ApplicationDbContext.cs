@@ -15,6 +15,9 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<CompanyPart> CompanyParts => Set<CompanyPart>();
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
+    public DbSet<ExternalImportSource> ExternalImportSources => Set<ExternalImportSource>();
+    public DbSet<ExternalComponentImport> ExternalComponentImports => Set<ExternalComponentImport>();
+    public DbSet<ExternalComponentAsset> ExternalComponentAssets => Set<ExternalComponentAsset>();
     public DbSet<ManufacturerPart> ManufacturerParts => Set<ManufacturerPart>();
     public DbSet<SymbolFamily> SymbolFamilies => Set<SymbolFamily>();
     public DbSet<PackageFamily> PackageFamilies => Set<PackageFamily>();
