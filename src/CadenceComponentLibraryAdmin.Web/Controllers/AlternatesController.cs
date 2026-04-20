@@ -14,21 +14,33 @@ namespace CadenceComponentLibraryAdmin.Web.Controllers;
 public sealed class AlternatesController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IChangeLogService _changeLogService;
     private readonly IPartAlternateService _partAlternateService;
 
-    public AlternatesController(ApplicationDbContext dbContext, IPartAlternateService partAlternateService)
+    public AlternatesController(
+        ApplicationDbContext dbContext,
+        IPartAlternateService partAlternateService,
+        IChangeLogService changeLogService)
     {
         _dbContext = dbContext;
         _partAlternateService = partAlternateService;
+        _changeLogService = changeLogService;
     }
 
-    public async Task<IActionResult> Index(string? companyPn, AlternateLevel? altLevel, int page = 1, int pageSize = 20)
+    public async Task<IActionResult> Index(string? sourceCompanyPN, string? targetCompanyPN, AlternateLevel? altLevel, int page = 1, int pageSize = 20)
     {
-        var query = _dbContext.PartAlternates.AsQueryable();
+        var query = _dbContext.PartAlternates
+            .Where(x => !x.IsDeleted)
+            .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(companyPn))
+        if (!string.IsNullOrWhiteSpace(sourceCompanyPN))
         {
-            query = query.Where(x => x.SourceCompanyPN.Contains(companyPn) || x.TargetCompanyPN.Contains(companyPn));
+            query = query.Where(x => x.SourceCompanyPN.Contains(sourceCompanyPN));
+        }
+
+        if (!string.IsNullOrWhiteSpace(targetCompanyPN))
+        {
+            query = query.Where(x => x.TargetCompanyPN.Contains(targetCompanyPN));
         }
 
         if (altLevel.HasValue)
@@ -44,28 +56,58 @@ public sealed class AlternatesController : Controller
             .Take(pageSize)
             .ToListAsync();
 
-        ViewBag.CompanyPN = companyPn;
-        ViewBag.AltLevel = altLevel;
-        return View(new PagedResult<PartAlternate>
+        var companyPns = items
+            .SelectMany(x => new[] { x.SourceCompanyPN, x.TargetCompanyPN })
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var descriptions = await _dbContext.CompanyParts
+            .Where(x => companyPns.Contains(x.CompanyPN))
+            .ToDictionaryAsync(x => x.CompanyPN, x => x.Description);
+
+        var listItems = items
+            .Select(item => new AlternateListItemViewModel
+            {
+                Alternate = item,
+                SourceDescription = descriptions.GetValueOrDefault(item.SourceCompanyPN),
+                TargetDescription = descriptions.GetValueOrDefault(item.TargetCompanyPN)
+            })
+            .ToList();
+
+        return View(new AlternatesIndexViewModel
         {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = totalCount
+            SourceCompanyPN = sourceCompanyPN,
+            TargetCompanyPN = targetCompanyPN,
+            AltLevel = altLevel,
+            Results = new PagedResult<AlternateListItemViewModel>
+            {
+                Items = listItems,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            }
         });
     }
 
     public async Task<IActionResult> Details(long id)
     {
-        var item = await _dbContext.PartAlternates.FirstOrDefaultAsync(x => x.Id == id);
-        return item is null ? NotFound() : View(item);
+        var item = await _dbContext.PartAlternates
+            .Where(x => !x.IsDeleted)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (item is null)
+        {
+            return NotFound();
+        }
+
+        return View(await BuildAlternateListItemAsync(item));
     }
 
-    public IActionResult Create()
+    public IActionResult Create(string? sourceCompanyPN = null)
     {
         PopulateCompanyParts();
         return View(new PartAlternate
         {
+            SourceCompanyPN = sourceCompanyPN ?? string.Empty,
             AltLevel = AlternateLevel.B,
             NeedEEReviewYN = true,
             NeedLayoutReviewYN = true
@@ -76,6 +118,7 @@ public sealed class AlternatesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PartAlternate model)
     {
+        await _partAlternateService.PrepareForSaveAsync(model);
         var ruleResult = await _partAlternateService.ValidateAsync(model);
         if (!ModelState.IsValid || !ruleResult.Succeeded)
         {
@@ -90,6 +133,13 @@ public sealed class AlternatesController : Controller
 
         model.CreatedBy = User.Identity?.Name;
         _dbContext.PartAlternates.Add(model);
+        await WriteAuditAsync(
+            model.SourceCompanyPN,
+            model.TargetCompanyPN,
+            ChangeType.NewPart,
+            "None",
+            "PendingApproval",
+            "Alternate relation created.");
         await _dbContext.SaveChangesAsync();
         TempData["SuccessMessage"] = "Alternate relation created.";
         return RedirectToAction(nameof(Index));
@@ -97,7 +147,9 @@ public sealed class AlternatesController : Controller
 
     public async Task<IActionResult> Edit(long id)
     {
-        var item = await _dbContext.PartAlternates.FirstOrDefaultAsync(x => x.Id == id);
+        var item = await _dbContext.PartAlternates
+            .Where(x => !x.IsDeleted)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (item is null) return NotFound();
         PopulateCompanyParts();
         return View(item);
@@ -109,6 +161,7 @@ public sealed class AlternatesController : Controller
     {
         if (id != model.Id) return NotFound();
 
+        await _partAlternateService.PrepareForSaveAsync(model);
         var ruleResult = await _partAlternateService.ValidateAsync(model);
         if (!ModelState.IsValid || !ruleResult.Succeeded)
         {
@@ -124,6 +177,7 @@ public sealed class AlternatesController : Controller
         var item = await _dbContext.PartAlternates.FirstOrDefaultAsync(x => x.Id == id);
         if (item is null) return NotFound();
 
+        var approvalStateBefore = item.ApprovedAt.HasValue ? "Approved" : "PendingApproval";
         item.SourceCompanyPN = model.SourceCompanyPN;
         item.TargetCompanyPN = model.TargetCompanyPN;
         item.AltLevel = model.AltLevel;
@@ -134,6 +188,13 @@ public sealed class AlternatesController : Controller
         item.Notes = model.Notes;
         item.UpdatedBy = User.Identity?.Name;
 
+        await WriteAuditAsync(
+            item.SourceCompanyPN,
+            item.TargetCompanyPN,
+            ChangeType.StatusChanged,
+            approvalStateBefore,
+            item.ApprovedAt.HasValue ? "Approved" : "PendingApproval",
+            "Alternate relation updated.");
         await _dbContext.SaveChangesAsync();
         TempData["SuccessMessage"] = "Alternate relation updated.";
         return RedirectToAction(nameof(Index));
@@ -143,14 +204,60 @@ public sealed class AlternatesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Approve(long id)
     {
-        var item = await _dbContext.PartAlternates.FirstOrDefaultAsync(x => x.Id == id);
+        if (!CanApproveAlternate())
+        {
+            return Forbid();
+        }
+
+        var item = await _dbContext.PartAlternates
+            .Where(x => !x.IsDeleted)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (item is not null)
         {
+            var validationResult = await _partAlternateService.ValidateApprovalAsync(item);
+            if (!validationResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(" ", validationResult.Errors);
+                return RedirectToAction(nameof(Index));
+            }
+
             item.ApprovedBy = User.Identity?.Name;
             item.ApprovedAt = DateTime.UtcNow;
             item.UpdatedBy = User.Identity?.Name;
+            await WriteAuditAsync(
+                item.SourceCompanyPN,
+                item.TargetCompanyPN,
+                ChangeType.StatusChanged,
+                "PendingApproval",
+                "Approved",
+                "Alternate relation approved.");
             await _dbContext.SaveChangesAsync();
             TempData["SuccessMessage"] = "Alternate relation approved.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var item = await _dbContext.PartAlternates
+            .Where(x => !x.IsDeleted)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (item is not null)
+        {
+            item.IsDeleted = true;
+            item.UpdatedBy = User.Identity?.Name;
+            await WriteAuditAsync(
+                item.SourceCompanyPN,
+                item.TargetCompanyPN,
+                ChangeType.AltRemoved,
+                item.ApprovedAt.HasValue ? "Approved" : "PendingApproval",
+                "Deleted",
+                "Alternate relation soft deleted.");
+            await _dbContext.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Alternate relation deleted.";
         }
 
         return RedirectToAction(nameof(Index));
@@ -164,5 +271,40 @@ public sealed class AlternatesController : Controller
             .ToList();
 
         ViewBag.CompanyParts = new SelectList(items, "CompanyPN", "CompanyPN");
+    }
+
+    private bool CanApproveAlternate()
+        => User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer");
+
+    private async Task<AlternateListItemViewModel> BuildAlternateListItemAsync(PartAlternate alternate)
+    {
+        var descriptions = await _dbContext.CompanyParts
+            .Where(x => x.CompanyPN == alternate.SourceCompanyPN || x.CompanyPN == alternate.TargetCompanyPN)
+            .ToDictionaryAsync(x => x.CompanyPN, x => x.Description);
+
+        return new AlternateListItemViewModel
+        {
+            Alternate = alternate,
+            SourceDescription = descriptions.GetValueOrDefault(alternate.SourceCompanyPN),
+            TargetDescription = descriptions.GetValueOrDefault(alternate.TargetCompanyPN)
+        };
+    }
+
+    private Task WriteAuditAsync(
+        string sourceCompanyPn,
+        string targetCompanyPn,
+        ChangeType changeType,
+        string? oldValue,
+        string? newValue,
+        string reason)
+    {
+        var actor = User.Identity?.Name ?? "system";
+        return _changeLogService.WriteAsync(
+            $"ALTERNATE:{sourceCompanyPn}->{targetCompanyPn}",
+            changeType,
+            oldValue,
+            newValue,
+            reason,
+            actor);
     }
 }

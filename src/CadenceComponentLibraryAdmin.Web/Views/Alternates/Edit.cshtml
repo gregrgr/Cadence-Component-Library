@@ -4,6 +4,7 @@
     <div class="card-body">
         <h1 class="h4 mb-3">Edit Alternate</h1>
         <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
             <partial name="_Form" model="Model" />
             <div class="mt-4 d-flex gap-2">

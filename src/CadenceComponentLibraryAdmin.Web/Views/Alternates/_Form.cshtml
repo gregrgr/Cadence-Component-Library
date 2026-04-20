@@ -15,23 +15,30 @@
         <label asp-for="AltLevel" class="form-label"></label>
         <select asp-for="AltLevel" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.AlternateLevel>()" class="form-select"></select>
     </div>
-    <div class="col-12 d-flex flex-wrap gap-4">
-        <div class="form-check">
-            <input asp-for="SameFootprintYN" class="form-check-input" />
-            <label asp-for="SameFootprintYN" class="form-check-label"></label>
+    <div class="col-12">
+        <div class="alert alert-info mb-0">
+            Compatibility flags are calculated automatically from the selected source and target company parts when you save.
         </div>
-        <div class="form-check">
-            <input asp-for="SameSymbolYN" class="form-check-input" />
-            <label asp-for="SameSymbolYN" class="form-check-label"></label>
-        </div>
-        <div class="form-check">
-            <input asp-for="NeedEEReviewYN" class="form-check-input" />
-            <label asp-for="NeedEEReviewYN" class="form-check-label"></label>
-        </div>
-        <div class="form-check">
-            <input asp-for="NeedLayoutReviewYN" class="form-check-input" />
-            <label asp-for="NeedLayoutReviewYN" class="form-check-label"></label>
-        </div>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" asp-for="SameFootprintYN"></label>
+        <input type="hidden" asp-for="SameFootprintYN" />
+        <input class="form-control" value="@(Model.SameFootprintYN ? "Yes" : "No")" readonly />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" asp-for="SameSymbolYN"></label>
+        <input type="hidden" asp-for="SameSymbolYN" />
+        <input class="form-control" value="@(Model.SameSymbolYN ? "Yes" : "No")" readonly />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" asp-for="NeedEEReviewYN"></label>
+        <input type="hidden" asp-for="NeedEEReviewYN" />
+        <input class="form-control" value="@(Model.NeedEEReviewYN ? "Yes" : "No")" readonly />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" asp-for="NeedLayoutReviewYN"></label>
+        <input type="hidden" asp-for="NeedLayoutReviewYN" />
+        <input class="form-control" value="@(Model.NeedLayoutReviewYN ? "Yes" : "No")" readonly />
     </div>
     <div class="col-12">
         <label asp-for="Notes" class="form-label"></label>

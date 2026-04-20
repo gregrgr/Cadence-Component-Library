@@ -81,7 +81,52 @@ public sealed class CompanyPartsController : Controller
             .Include(x => x.ManufacturerParts)
             .Include(x => x.Documents)
             .FirstOrDefaultAsync(x => x.Id == id);
-        return item is null ? NotFound() : View(item);
+        if (item is null)
+        {
+            return NotFound();
+        }
+
+        var relatedAlternates = await _dbContext.PartAlternates
+            .Where(x => !x.IsDeleted && (x.SourceCompanyPN == item.CompanyPN || x.TargetCompanyPN == item.CompanyPN))
+            .OrderBy(x => x.SourceCompanyPN)
+            .ThenBy(x => x.TargetCompanyPN)
+            .ToListAsync();
+
+        var relatedCompanyPns = relatedAlternates
+            .SelectMany(x => new[] { x.SourceCompanyPN, x.TargetCompanyPN })
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var descriptions = await _dbContext.CompanyParts
+            .Where(x => relatedCompanyPns.Contains(x.CompanyPN))
+            .ToDictionaryAsync(x => x.CompanyPN, x => x.Description);
+
+        AlternateListItemViewModel BuildAlternateListItem(PartAlternate alternate) => new()
+        {
+            Alternate = alternate,
+            SourceDescription = descriptions.GetValueOrDefault(alternate.SourceCompanyPN),
+            TargetDescription = descriptions.GetValueOrDefault(alternate.TargetCompanyPN)
+        };
+
+        var model = new CompanyPartDetailsViewModel
+        {
+            CompanyPart = item,
+            ApprovedManufacturerParts = item.ManufacturerParts
+                .Where(x => x.IsApproved)
+                .OrderBy(x => x.Manufacturer)
+                .ThenBy(x => x.ManufacturerPN)
+                .ToList(),
+            SourceAlternates = relatedAlternates
+                .Where(x => x.SourceCompanyPN == item.CompanyPN)
+                .Select(BuildAlternateListItem)
+                .ToList(),
+            TargetAlternates = relatedAlternates
+                .Where(x => x.TargetCompanyPN == item.CompanyPN)
+                .Select(BuildAlternateListItem)
+                .ToList()
+        };
+
+        return View(model);
     }
 
     public IActionResult Create()

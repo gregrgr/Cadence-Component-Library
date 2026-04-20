@@ -19,15 +19,18 @@ The repository currently includes:
   - `PackageFamilies`
   - `FootprintVariants`
   - `OnlineCandidates`
+- Workflow modules:
+  - `Approval Queue`
+  - `Alternates`
+  - `Change Logs`
+  - `Quality Reports`
+  - `Library Releases`
 - Business rules:
   - package signature generation and duplicate prevention
   - approved part validation
   - approved-part footprint / symbol change logging
   - alternate-level checks
-- Operational modules:
-  - quality reports
-  - library releases
-  - change logs
+  - approval queue validation and status transitions
 - Identity and role seeding
 - Docker Compose runtime
 - GitHub Actions CI
@@ -47,20 +50,20 @@ The repository currently includes:
 
 ```text
 CadenceComponentLibraryAdmin/
-├─ src/
-│  ├─ CadenceComponentLibraryAdmin.Web/
-│  ├─ CadenceComponentLibraryAdmin.Application/
-│  ├─ CadenceComponentLibraryAdmin.Domain/
-│  └─ CadenceComponentLibraryAdmin.Infrastructure/
-├─ tests/
-│  └─ CadenceComponentLibraryAdmin.Tests/
-├─ docs/
-├─ library/
-├─ storage/
-├─ docker-compose.yml
-├─ .env.example
-├─ README.md
-└─ CadenceComponentLibraryAdmin.sln
+|- src/
+|  |- CadenceComponentLibraryAdmin.Web/
+|  |- CadenceComponentLibraryAdmin.Application/
+|  |- CadenceComponentLibraryAdmin.Domain/
+|  `- CadenceComponentLibraryAdmin.Infrastructure/
+|- tests/
+|  `- CadenceComponentLibraryAdmin.Tests/
+|- docs/
+|- library/
+|- storage/
+|- docker-compose.yml
+|- .env.example
+|- README.md
+`- CadenceComponentLibraryAdmin.sln
 ```
 
 ## Roles and development admin
@@ -234,16 +237,15 @@ Important indexes:
 ## Current limitations
 
 - The repository still relies on SQL Server as the primary relational target; local work without SQL Server usually uses Docker.
-- The baseline migration is now formalized, but future schema changes still need deliberate migration discipline.
+- The baseline migration is formalized, but future schema changes still need deliberate migration discipline.
 - The application does not yet include all planned workflow pages and admin tooling.
 - Automated vendor download, footprint generation, `.olb` generation, ERP / PLM sync, and advanced multi-step workflows are not implemented yet.
 
 ## Planned next steps
 
-Recommended order after Milestone B0:
+Recommended order after Milestone B1:
 
-1. `Approval Queue`
-2. `Alternates` workflow
-3. `Users / Roles` administration
-4. richer dashboard metrics
-5. bulk import / export workflows
+1. `Users / Roles` administration
+2. richer dashboard metrics
+3. bulk import / export workflows
+4. finer list filters and batch actions

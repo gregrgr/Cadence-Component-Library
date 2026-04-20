@@ -1,13 +1,14 @@
-@model CadenceComponentLibraryAdmin.Domain.Entities.CompanyPart
+@model CadenceComponentLibraryAdmin.Web.Models.CompanyPartDetailsViewModel
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h1 class="h4 mb-1">@Model.CompanyPN</h1>
-        <div class="text-muted">@Model.Description</div>
+        <h1 class="h4 mb-1">@Model.CompanyPart.CompanyPN</h1>
+        <div class="text-muted">@Model.CompanyPart.Description</div>
     </div>
     <div class="d-flex gap-2">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
-        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Delete this company part?');">
+        <a asp-controller="Alternates" asp-action="Create" asp-route-sourceCompanyPN="@Model.CompanyPart.CompanyPN" class="btn btn-outline-primary">Add Alternate</a>
+        <a asp-action="Edit" asp-route-id="@Model.CompanyPart.Id" class="btn btn-primary">Edit</a>
+        <form asp-action="Delete" asp-route-id="@Model.CompanyPart.Id" method="post" onsubmit="return confirm('Delete this company part?');">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-outline-danger">Delete</button>
         </form>
@@ -22,21 +23,21 @@
                 <h2 class="h5 mb-3">Base Information</h2>
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Part Class</dt>
-                    <dd class="col-sm-8">@Model.PartClass</dd>
+                    <dd class="col-sm-8">@Model.CompanyPart.PartClass</dd>
                     <dt class="col-sm-4">Value</dt>
-                    <dd class="col-sm-8">@Model.ValueNorm</dd>
+                    <dd class="col-sm-8">@Model.CompanyPart.ValueNorm</dd>
                     <dt class="col-sm-4">Symbol Family</dt>
-                    <dd class="col-sm-8">@Model.SymbolFamilyCode</dd>
+                    <dd class="col-sm-8">@Model.CompanyPart.SymbolFamilyCode</dd>
                     <dt class="col-sm-4">Package Family</dt>
-                    <dd class="col-sm-8">@Model.PackageFamilyCode</dd>
+                    <dd class="col-sm-8">@Model.CompanyPart.PackageFamilyCode</dd>
                     <dt class="col-sm-4">Default Footprint</dt>
-                    <dd class="col-sm-8">@Model.DefaultFootprintName</dd>
+                    <dd class="col-sm-8">@Model.CompanyPart.DefaultFootprintName</dd>
                     <dt class="col-sm-4">Approval</dt>
-                    <dd class="col-sm-8"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.ApprovalStatus.ToString()" /></dd>
+                    <dd class="col-sm-8"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.CompanyPart.ApprovalStatus.ToString()" /></dd>
                     <dt class="col-sm-4">Lifecycle</dt>
-                    <dd class="col-sm-8"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.LifecycleStatus.ToString()" /></dd>
+                    <dd class="col-sm-8"><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@Model.CompanyPart.LifecycleStatus.ToString()" /></dd>
                     <dt class="col-sm-4">Datasheet</dt>
-                    <dd class="col-sm-8"><a href="@Model.DatasheetUrl" target="_blank">@Model.DatasheetUrl</a></dd>
+                    <dd class="col-sm-8"><a href="@Model.CompanyPart.DatasheetUrl" target="_blank">@Model.CompanyPart.DatasheetUrl</a></dd>
                 </dl>
             </div>
         </div>
@@ -47,23 +48,128 @@
                 <h2 class="h5 mb-3">Compliance</h2>
                 <dl class="row mb-0">
                     <dt class="col-sm-5">RoHS</dt>
-                    <dd class="col-sm-7">@Model.RoHS</dd>
+                    <dd class="col-sm-7">@Model.CompanyPart.RoHS</dd>
                     <dt class="col-sm-5">REACH</dt>
-                    <dd class="col-sm-7">@Model.REACHStatus</dd>
+                    <dd class="col-sm-7">@Model.CompanyPart.REACHStatus</dd>
                     <dt class="col-sm-5">Temp Range</dt>
-                    <dd class="col-sm-7">@Model.TempRange</dd>
+                    <dd class="col-sm-7">@Model.CompanyPart.TempRange</dd>
                     <dt class="col-sm-5">Height Max</dt>
-                    <dd class="col-sm-7">@Model.HeightMaxMm</dd>
+                    <dd class="col-sm-7">@Model.CompanyPart.HeightMaxMm</dd>
                     <dt class="col-sm-5">Alt Group</dt>
-                    <dd class="col-sm-7">@Model.AltGroup</dd>
+                    <dd class="col-sm-7">@Model.CompanyPart.AltGroup</dd>
                 </dl>
             </div>
         </div>
         <div class="page-card card">
             <div class="card-body">
                 <h2 class="h5 mb-3">Related</h2>
-                <div class="mb-2">Manufacturer Parts: <strong>@Model.ManufacturerParts.Count</strong></div>
-                <div>Documents: <strong>@Model.Documents.Count</strong></div>
+                <div class="mb-2">Manufacturer Parts: <strong>@Model.CompanyPart.ManufacturerParts.Count</strong></div>
+                <div class="mb-2">Documents: <strong>@Model.CompanyPart.Documents.Count</strong></div>
+                <div>Alternates: <strong>@(Model.SourceAlternates.Count + Model.TargetAlternates.Count)</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-5">
+        <div class="page-card card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Approved Manufacturer Parts</h2>
+                    <span class="badge rounded-pill bg-success-subtle text-success-emphasis">@Model.ApprovedManufacturerParts.Count</span>
+                </div>
+                @if (Model.ApprovedManufacturerParts.Count == 0)
+                {
+                    <div class="text-muted">No approved manufacturer parts linked yet.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                    @foreach (var mpn in Model.ApprovedManufacturerParts)
+                    {
+                        <li class="list-group-item px-0">
+                            <div class="fw-semibold">@mpn.ManufacturerPN</div>
+                            <div class="small text-muted">@mpn.Manufacturer</div>
+                        </li>
+                    }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="page-card card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Alternates Where This Part Is Source</h2>
+                    <a asp-controller="Alternates" asp-action="Create" asp-route-sourceCompanyPN="@Model.CompanyPart.CompanyPN" class="btn btn-sm btn-outline-primary">Add Alternate</a>
+                </div>
+                @if (Model.SourceAlternates.Count == 0)
+                {
+                    <div class="text-muted">No source alternates defined for this company part.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Target</th>
+                                    <th>Description</th>
+                                    <th>Level</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var alternate in Model.SourceAlternates)
+                            {
+                                <tr>
+                                    <td><a asp-controller="Alternates" asp-action="Details" asp-route-id="@alternate.Alternate.Id" class="text-decoration-none">@alternate.Alternate.TargetCompanyPN</a></td>
+                                    <td>@(alternate.TargetDescription ?? "-")</td>
+                                    <td>@alternate.Alternate.AltLevel</td>
+                                    <td><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@(alternate.Alternate.ApprovedAt.HasValue ? "Approved" : "PendingReview")" /></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="page-card card">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Alternates Where This Part Is Target</h2>
+                @if (Model.TargetAlternates.Count == 0)
+                {
+                    <div class="text-muted">No inbound alternates reference this company part.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Description</th>
+                                    <th>Level</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var alternate in Model.TargetAlternates)
+                            {
+                                <tr>
+                                    <td><a asp-controller="Alternates" asp-action="Details" asp-route-id="@alternate.Alternate.Id" class="text-decoration-none">@alternate.Alternate.SourceCompanyPN</a></td>
+                                    <td>@(alternate.SourceDescription ?? "-")</td>
+                                    <td>@alternate.Alternate.AltLevel</td>
+                                    <td><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@(alternate.Alternate.ApprovedAt.HasValue ? "Approved" : "PendingReview")" /></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         </div>
     </div>

@@ -8,4 +8,12 @@ public interface IPartAlternateService
     Task<RuleCheckResult> ValidateAsync(
         PartAlternate alternate,
         CancellationToken cancellationToken = default);
+
+    Task<RuleCheckResult> ValidateApprovalAsync(
+        PartAlternate alternate,
+        CancellationToken cancellationToken = default);
+
+    Task PrepareForSaveAsync(
+        PartAlternate alternate,
+        CancellationToken cancellationToken = default);
 }
