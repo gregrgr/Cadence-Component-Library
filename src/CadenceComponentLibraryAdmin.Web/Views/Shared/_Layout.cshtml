@@ -61,51 +61,51 @@
     }
     <div class="d-flex app-shell">
         <aside class="sidebar text-white p-3 d-none d-lg-block">
-            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-white">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none text-white">
                 <div class="fs-5 fw-semibold mb-4">Cadence Component Library Admin</div>
             </a>
 
             <div class="text-uppercase small text-secondary mb-2">Navigation</div>
             <nav class="nav flex-column">
-                <a class="nav-link @(currentController == "Home" ? "active" : string.Empty)" asp-controller="Home" asp-action="Index">Dashboard</a>
+                <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "Home" ? "active" : string.Empty)" asp-area="" asp-controller="Home" asp-action="Index">Dashboard</a>
                 @if (canViewOnlineCandidates)
                 {
-                    <a class="nav-link @(currentController == "OnlineCandidates" ? "active" : string.Empty)" asp-controller="OnlineCandidates" asp-action="Index">Online Candidates</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "OnlineCandidates" ? "active" : string.Empty)" asp-area="" asp-controller="OnlineCandidates" asp-action="Index">Online Candidates</a>
                 }
                 @if (canViewExternalImports)
                 {
-                    <a class="nav-link @(currentController == "ExternalImports" ? "active" : string.Empty)" asp-controller="ExternalImports" asp-action="Index">External Imports</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "ExternalImports" ? "active" : string.Empty)" asp-area="" asp-controller="ExternalImports" asp-action="Index">External Imports</a>
                 }
                 @if (canViewCompanyParts)
                 {
-                    <a class="nav-link @(currentController == "CompanyParts" ? "active" : string.Empty)" asp-controller="CompanyParts" asp-action="Index">Company Parts</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "CompanyParts" ? "active" : string.Empty)" asp-area="" asp-controller="CompanyParts" asp-action="Index">Company Parts</a>
                 }
                 @if (canViewManufacturerParts)
                 {
-                    <a class="nav-link @(currentController == "ManufacturerParts" ? "active" : string.Empty)" asp-controller="ManufacturerParts" asp-action="Index">Manufacturer Parts</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "ManufacturerParts" ? "active" : string.Empty)" asp-area="" asp-controller="ManufacturerParts" asp-action="Index">Manufacturer Parts</a>
                 }
                 @if (canViewLibrary)
                 {
-                    <a class="nav-link @(currentController == "SymbolFamilies" ? "active" : string.Empty)" asp-controller="SymbolFamilies" asp-action="Index">Symbol Families</a>
-                    <a class="nav-link @(currentController == "PackageFamilies" ? "active" : string.Empty)" asp-controller="PackageFamilies" asp-action="Index">Package Families</a>
-                    <a class="nav-link @(currentController == "FootprintVariants" ? "active" : string.Empty)" asp-controller="FootprintVariants" asp-action="Index">Footprint Variants</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "SymbolFamilies" ? "active" : string.Empty)" asp-area="" asp-controller="SymbolFamilies" asp-action="Index">Symbol Families</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "PackageFamilies" ? "active" : string.Empty)" asp-area="" asp-controller="PackageFamilies" asp-action="Index">Package Families</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "FootprintVariants" ? "active" : string.Empty)" asp-area="" asp-controller="FootprintVariants" asp-action="Index">Footprint Variants</a>
                 }
                 @if (canViewAlternates)
                 {
-                    <a class="nav-link @(currentController == "Alternates" ? "active" : string.Empty)" asp-controller="Alternates" asp-action="Index">Alternates</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "Alternates" ? "active" : string.Empty)" asp-area="" asp-controller="Alternates" asp-action="Index">Alternates</a>
                 }
                 @if (isAdmin || isLibrarian || isEeReviewer)
                 {
-                    <a class="nav-link @(currentController == "ApprovalQueue" ? "active" : string.Empty)" asp-controller="ApprovalQueue" asp-action="Index">Approval Queue</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "ApprovalQueue" ? "active" : string.Empty)" asp-area="" asp-controller="ApprovalQueue" asp-action="Index">Approval Queue</a>
                 }
                 @if (!isDesigner || isAdmin)
                 {
-                    <a class="nav-link @(currentController == "QualityReports" ? "active" : string.Empty)" asp-controller="QualityReports" asp-action="Index">Quality Reports</a>
-                    <a class="nav-link @(currentController == "ChangeLogs" ? "active" : string.Empty)" asp-controller="ChangeLogs" asp-action="Index">Change Logs</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "QualityReports" ? "active" : string.Empty)" asp-area="" asp-controller="QualityReports" asp-action="Index">Quality Reports</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "ChangeLogs" ? "active" : string.Empty)" asp-area="" asp-controller="ChangeLogs" asp-action="Index">Change Logs</a>
                 }
                 @if (isAdmin)
                 {
-                    <a class="nav-link @(currentController == "LibraryReleases" ? "active" : string.Empty)" asp-controller="LibraryReleases" asp-action="Index">Library Releases</a>
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "LibraryReleases" ? "active" : string.Empty)" asp-area="" asp-controller="LibraryReleases" asp-action="Index">Library Releases</a>
                     <a class="nav-link @(currentArea == "Admin" && currentController == "Users" ? "active" : string.Empty)" asp-area="Admin" asp-controller="Users" asp-action="Index">Admin Users</a>
                     <a class="nav-link @(currentArea == "Admin" && currentController == "Roles" ? "active" : string.Empty)" asp-area="Admin" asp-controller="Roles" asp-action="Index">Admin Roles</a>
                 }
