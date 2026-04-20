@@ -1,0 +1,47 @@
+@model CadenceComponentLibraryAdmin.Web.Models.AdminRoleEditViewModel
+<div class="page-card card">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Edit Role</h1>
+        @if (Model.IsSystemRole)
+        {
+            <div class="alert alert-warning">Seeded system roles cannot be renamed or deleted.</div>
+        }
+        else if (Model.AssignedUsers.Count > 0)
+        {
+            <div class="alert alert-info">Only unassigned custom roles can be renamed safely. Remove assigned users before renaming this role.</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Name" class="form-label"></label>
+                    @if (Model.IsSystemRole)
+                    {
+                        <input asp-for="Name" class="form-control" readonly />
+                    }
+                    else
+                    {
+                        <input asp-for="Name" class="form-control" />
+                    }
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Assigned Users</label>
+                    <textarea class="form-control" rows="4" readonly>@(Model.AssignedUsers.Count == 0 ? "-" : string.Join(Environment.NewLine, Model.AssignedUsers))</textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                @if (!Model.IsSystemRole)
+                {
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                }
+                <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>

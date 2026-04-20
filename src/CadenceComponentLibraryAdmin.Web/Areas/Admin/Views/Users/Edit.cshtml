@@ -1,0 +1,54 @@
+@model CadenceComponentLibraryAdmin.Web.Models.AdminUserEditViewModel
+
+<div class="page-card card">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Edit User</h1>
+        <div class="text-muted mb-3">Identity user metadata such as created/updated timestamps is not tracked in the current baseline.</div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="UserName" class="form-label"></label>
+                    <input asp-for="UserName" class="form-control" />
+                    <span asp-validation-for="UserName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Roles</label>
+                    <select asp-for="SelectedRoles" asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.MultiSelectList(Model.AvailableRoles, Model.SelectedRoles))" class="form-select" multiple size="6"></select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Lockout End</label>
+                    <input class="form-control" value="@(Model.LockoutEnd?.ToString("yyyy-MM-dd HH:mm") ?? "-")" readonly />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Access Failed Count</label>
+                    <input class="form-control" value="@Model.AccessFailedCount" readonly />
+                </div>
+                <div class="col-12 d-flex flex-wrap gap-4">
+                    <div class="form-check">
+                        <input asp-for="EmailConfirmed" class="form-check-input" />
+                        <label asp-for="EmailConfirmed" class="form-check-label"></label>
+                    </div>
+                    <div class="form-check">
+                        <input asp-for="LockoutEnabled" class="form-check-input" />
+                        <label asp-for="LockoutEnabled" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="ResetPassword" asp-route-id="@Model.Id" class="btn btn-outline-warning">Reset Password</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>

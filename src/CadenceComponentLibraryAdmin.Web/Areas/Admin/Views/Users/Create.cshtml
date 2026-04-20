@@ -1,0 +1,38 @@
+@model CadenceComponentLibraryAdmin.Web.Models.AdminUserCreateViewModel
+
+<div class="page-card card">
+    <div class="card-body">
+        <h1 class="h4 mb-3">Create User</h1>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Roles</label>
+                    <select asp-for="SelectedRoles" asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.MultiSelectList(Model.AvailableRoles))" class="form-select" multiple size="6"></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create User</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

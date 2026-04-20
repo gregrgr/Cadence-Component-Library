@@ -1,11 +1,18 @@
 @model CadenceComponentLibraryAdmin.Web.Models.PagedResult<CadenceComponentLibraryAdmin.Domain.Entities.PackageFamily>
 
+@{
+    var canMutatePackageFamilies = User.IsInRole("Admin") || User.IsInRole("Librarian");
+}
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="h4 mb-1">Package Families</h1>
         <div class="text-muted">Track reusable package geometry and package signatures.</div>
     </div>
-    <a asp-action="Create" class="btn btn-primary">New Package Family</a>
+    @if (canMutatePackageFamilies)
+    {
+        <a asp-action="Create" class="btn btn-primary">New Package Family</a>
+    }
 </div>
 
 <div class="page-card card mb-3">
@@ -45,7 +52,10 @@
                     <td><code>@item.PackageSignature</code></td>
                     <td class="text-end">
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        @if (canMutatePackageFamilies)
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        }
                     </td>
                 </tr>
             }

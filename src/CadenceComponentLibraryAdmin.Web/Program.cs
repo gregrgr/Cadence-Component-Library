@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
+var bootstrapAdminOptions = builder.Configuration.GetSection("BootstrapAdmin").Get<BootstrapAdminOptions>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -37,6 +38,7 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
         options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
     }
 });
+builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
 builder.Services.AddScoped<IChangeLogService, ChangeLogService>();
 builder.Services.AddScoped<IPackageFamilyService, PackageFamilyService>();
 builder.Services.AddScoped<ICompanyPartService, CompanyPartService>();
@@ -74,6 +76,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
@@ -91,6 +97,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-await IdentitySeeder.SeedAsync(app.Services, app.Environment.IsDevelopment());
+await IdentitySeeder.SeedAsync(app.Services, app.Environment.IsDevelopment(), bootstrapAdminOptions);
 
 app.Run();

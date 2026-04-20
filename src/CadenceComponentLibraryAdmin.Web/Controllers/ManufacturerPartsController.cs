@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CadenceComponentLibraryAdmin.Web.Controllers;
 
-[Authorize(Roles = "Admin,Librarian,Purchasing")]
+[Authorize(Roles = "Admin,Librarian,EEReviewer,Purchasing,Viewer")]
 public sealed class ManufacturerPartsController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
@@ -63,6 +63,11 @@ public sealed class ManufacturerPartsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ManufacturerPart model)
     {
+        if (!CanMutateManufacturerParts())
+        {
+            return Forbid();
+        }
+
         if (!ModelState.IsValid)
         {
             PopulateCompanyParts();
@@ -88,6 +93,11 @@ public sealed class ManufacturerPartsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(long id, ManufacturerPart model)
     {
+        if (!CanMutateManufacturerParts())
+        {
+            return Forbid();
+        }
+
         if (id != model.Id) return NotFound();
         if (!ModelState.IsValid)
         {
@@ -121,6 +131,11 @@ public sealed class ManufacturerPartsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(long id)
     {
+        if (!CanMutateManufacturerParts())
+        {
+            return Forbid();
+        }
+
         var item = await _dbContext.ManufacturerParts.FirstOrDefaultAsync(x => x.Id == id);
         if (item is not null)
         {
@@ -137,4 +152,7 @@ public sealed class ManufacturerPartsController : Controller
     {
         ViewBag.CompanyParts = new SelectList(_dbContext.CompanyParts.OrderBy(x => x.CompanyPN).ToList(), nameof(CompanyPart.CompanyPN), nameof(CompanyPart.CompanyPN));
     }
+
+    private bool CanMutateManufacturerParts()
+        => User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("Purchasing");
 }

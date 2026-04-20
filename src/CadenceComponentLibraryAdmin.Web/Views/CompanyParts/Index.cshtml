@@ -1,11 +1,18 @@
 @model CadenceComponentLibraryAdmin.Web.Models.PagedResult<CadenceComponentLibraryAdmin.Domain.Entities.CompanyPart>
 
+@{
+    var canMutateCompanyParts = User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer") || User.IsInRole("Purchasing");
+}
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="h4 mb-1">Company Parts</h1>
         <div class="text-muted">Search and maintain internal part numbers.</div>
     </div>
-    <a asp-action="Create" class="btn btn-primary">New Company Part</a>
+    @if (canMutateCompanyParts)
+    {
+        <a asp-action="Create" class="btn btn-primary">New Company Part</a>
+    }
 </div>
 
 <div class="page-card card mb-3">
@@ -67,7 +74,10 @@
                     <td><partial name="~/Views/Shared/_StatusBadge.cshtml" model="@item.LifecycleStatus.ToString()" /></td>
                     <td class="text-end">
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        @if (canMutateCompanyParts)
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        }
                     </td>
                 </tr>
             }

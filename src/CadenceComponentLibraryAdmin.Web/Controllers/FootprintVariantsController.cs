@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CadenceComponentLibraryAdmin.Web.Controllers;
 
-[Authorize(Roles = "Admin,Librarian")]
+[Authorize(Roles = "Admin,Librarian,EEReviewer,Viewer")]
 public sealed class FootprintVariantsController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
@@ -62,6 +62,11 @@ public sealed class FootprintVariantsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(FootprintVariant model)
     {
+        if (!CanMutateFootprintVariants())
+        {
+            return Forbid();
+        }
+
         if (!ModelState.IsValid)
         {
             PopulatePackageFamilies();
@@ -87,6 +92,11 @@ public sealed class FootprintVariantsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(long id, FootprintVariant model)
     {
+        if (!CanMutateFootprintVariants())
+        {
+            return Forbid();
+        }
+
         if (id != model.Id) return NotFound();
         if (!ModelState.IsValid)
         {
@@ -116,6 +126,11 @@ public sealed class FootprintVariantsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(long id)
     {
+        if (!CanMutateFootprintVariants())
+        {
+            return Forbid();
+        }
+
         var item = await _dbContext.FootprintVariants.FirstOrDefaultAsync(x => x.Id == id);
         if (item is not null)
         {
@@ -135,4 +150,7 @@ public sealed class FootprintVariantsController : Controller
             nameof(PackageFamily.PackageFamilyCode),
             nameof(PackageFamily.PackageFamilyCode));
     }
+
+    private bool CanMutateFootprintVariants()
+        => User.IsInRole("Admin") || User.IsInRole("Librarian");
 }
