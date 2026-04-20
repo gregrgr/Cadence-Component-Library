@@ -226,7 +226,9 @@ public sealed class ExternalImportsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin,Librarian,EEReviewer")]
-    public async Task<IActionResult> ImportFromLcsc(ExternalImportFromLcscInputModel input, CancellationToken cancellationToken)
+    public async Task<IActionResult> ImportFromLcsc(
+        [Bind(Prefix = "ImportForm")] ExternalImportFromLcscInputModel input,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(input.LcscId))
         {
@@ -255,7 +257,9 @@ public sealed class ExternalImportsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin,Librarian,EEReviewer")]
-    public async Task<IActionResult> BatchImportFromLcsc(ExternalImportBatchInputModel input, CancellationToken cancellationToken)
+    public async Task<IActionResult> BatchImportFromLcsc(
+        [Bind(Prefix = "BatchImportForm")] ExternalImportBatchInputModel input,
+        CancellationToken cancellationToken)
     {
         var lcscIds = (input.LcscIds ?? string.Empty)
             .Split(['\r', '\n', ',', ';', '\t', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
