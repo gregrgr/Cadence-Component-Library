@@ -16,6 +16,7 @@ using Xunit;
 
 namespace CadenceComponentLibraryAdmin.Tests;
 
+#pragma warning disable CS0618
 public sealed class EasyEdaImportControllerTests : IDisposable
 {
     private readonly string _storageRoot = Path.Combine(Path.GetTempPath(), "cadence-easyeda-tests", Guid.NewGuid().ToString("N"));
@@ -434,3 +435,4 @@ public sealed class EasyEdaImportControllerTests : IDisposable
         await dbContext.SaveChangesAsync();
     }
 }
+#pragma warning restore CS0618

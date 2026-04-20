@@ -32,15 +32,21 @@ public sealed class ExternalComponentImportConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.Description).HasMaxLength(2000);
         builder.Property(x => x.Manufacturer).HasMaxLength(160);
         builder.Property(x => x.ManufacturerPN).HasMaxLength(200);
+        builder.Property(x => x.PackageName).HasMaxLength(255);
+        builder.Property(x => x.JlcPartClass).HasMaxLength(200);
         builder.Property(x => x.Supplier).HasMaxLength(160);
         builder.Property(x => x.SupplierId).HasMaxLength(120);
         builder.Property(x => x.SymbolName).HasMaxLength(255);
         builder.Property(x => x.SymbolUuid).HasMaxLength(64);
         builder.Property(x => x.SymbolLibraryUuid).HasMaxLength(64);
         builder.Property(x => x.SymbolType).HasMaxLength(64);
+        builder.Property(x => x.SymbolBBoxX).HasPrecision(18, 6);
+        builder.Property(x => x.SymbolBBoxY).HasPrecision(18, 6);
         builder.Property(x => x.FootprintName).HasMaxLength(255);
         builder.Property(x => x.FootprintUuid).HasMaxLength(64);
         builder.Property(x => x.FootprintLibraryUuid).HasMaxLength(64);
+        builder.Property(x => x.FootprintBBoxX).HasPrecision(18, 6);
+        builder.Property(x => x.FootprintBBoxY).HasPrecision(18, 6);
         builder.Property(x => x.Model3DName).HasMaxLength(255);
         builder.Property(x => x.Model3DUuid).HasMaxLength(64);
         builder.Property(x => x.Model3DLibraryUuid).HasMaxLength(64);
@@ -66,6 +72,11 @@ public sealed class ExternalComponentImportConfiguration : IEntityTypeConfigurat
             .HasForeignKey(x => x.StepAssetId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        builder.HasOne(x => x.ObjAsset)
+            .WithMany()
+            .HasForeignKey(x => x.ObjAssetId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasOne(x => x.DatasheetAsset)
             .WithMany()
             .HasForeignKey(x => x.DatasheetAssetId)
@@ -74,6 +85,11 @@ public sealed class ExternalComponentImportConfiguration : IEntityTypeConfigurat
         builder.HasOne(x => x.ManualAsset)
             .WithMany()
             .HasForeignKey(x => x.ManualAssetId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(x => x.FootprintPreviewAsset)
+            .WithMany()
+            .HasForeignKey(x => x.FootprintPreviewAssetId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

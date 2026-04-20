@@ -12,5 +12,10 @@ public enum ExternalComponentAssetType
     FootprintRaw = 7,
     DeviceRaw = 8,
     SearchRaw = 9,
-    Other = 10
+    Other = 10,
+    Obj = 11,
+    FootprintPreview = 12,
+    EasyEdaRawJson = 13,
+    SymbolShapeRaw = 14,
+    FootprintShapeRaw = 15
 }

@@ -123,3 +123,19 @@ Remaining limitations:
 - `LIB_Device.getByLcscIds` may not work in private deployments.
 - `LIB_Footprint.getRenderImage` is treated as best-effort because it was not confirmed through the public reference index used during implementation.
 - STEP binaries may not always be obtainable directly from the SDK runtime, so URL preservation remains part of the design.
+
+## Milestone B4 Result
+
+- EasyEDA Pro SDK extension import is no longer the primary path.
+- The backend now supports LCSC ID import through an nlbn-style EasyEDA API client.
+- `/ExternalImports` exposes LCSC ID import and batch LCSC ID import flows.
+- Raw EasyEDA response JSON, `dataStr`, `packageDetail`, `lcsc`, `c_para`, symbol shapes, and footprint shapes are preserved in staging.
+- 3D `outline3D` metadata is extracted from footprint `SVGNODE` entries when present.
+- Optional STEP / OBJ download is staged as external assets with SHA256.
+- Raw symbol / footprint preservation is available directly from staged EasyEDA responses.
+- Footprint preview generation is best-effort and falls back to a placeholder SVG when needed.
+- Imported records still remain staging-only:
+  - no automatic APPROVED `CompanyPart`
+  - no automatic Released `FootprintVariant`
+  - no automatic Allegro `PSM` / `DRA` conversion
+- CI now focuses on `.NET` restore, build, and test; the legacy Node extension build is removed.

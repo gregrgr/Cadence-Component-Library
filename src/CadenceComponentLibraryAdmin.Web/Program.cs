@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
+using System.Reflection;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +45,18 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
 builder.Services.AddScoped<IChangeLogService, ChangeLogService>();
 builder.Services.AddScoped<IExternalImportService, ExternalImportService>();
+builder.Services.AddHttpClient<INlbnEasyEdaClient, NlbnEasyEdaClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<ExternalImportOptions>>().Value;
+    client.BaseAddress = new Uri(options.EasyEdaNlbn.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+
+    var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString()
+        ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString()
+        ?? "dev";
+    client.DefaultRequestHeaders.UserAgent.Clear();
+    client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("CadenceComponentLibraryAdmin", version));
+});
 builder.Services.AddScoped<IPackageFamilyService, PackageFamilyService>();
 builder.Services.AddScoped<ICompanyPartService, CompanyPartService>();
 builder.Services.AddScoped<IPartAlternateService, PartAlternateService>();

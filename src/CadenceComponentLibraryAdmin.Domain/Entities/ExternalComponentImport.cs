@@ -18,6 +18,8 @@ public sealed class ExternalComponentImport : BaseEntity
     public string? ClassificationJson { get; set; }
     public string? Manufacturer { get; set; }
     public string? ManufacturerPN { get; set; }
+    public string? PackageName { get; set; }
+    public string? JlcPartClass { get; set; }
     public string? Supplier { get; set; }
     public string? SupplierId { get; set; }
 
@@ -26,13 +28,21 @@ public sealed class ExternalComponentImport : BaseEntity
     public string? SymbolLibraryUuid { get; set; }
     public string? SymbolType { get; set; }
     public string? SymbolRawJson { get; set; }
+    public string? SymbolShapeJson { get; set; }
+    public decimal? SymbolBBoxX { get; set; }
+    public decimal? SymbolBBoxY { get; set; }
 
     public string? FootprintName { get; set; }
     public string? FootprintUuid { get; set; }
     public string? FootprintLibraryUuid { get; set; }
     public string? FootprintRawJson { get; set; }
+    public string? FootprintShapeJson { get; set; }
+    public decimal? FootprintBBoxX { get; set; }
+    public decimal? FootprintBBoxY { get; set; }
     public long? FootprintRenderAssetId { get; set; }
     public ExternalComponentAsset? FootprintRenderAsset { get; set; }
+    public long? FootprintPreviewAssetId { get; set; }
+    public ExternalComponentAsset? FootprintPreviewAsset { get; set; }
 
     public string? ImageUuidsJson { get; set; }
 
@@ -46,6 +56,8 @@ public sealed class ExternalComponentImport : BaseEntity
     public string? StepUrl { get; set; }
     public long? StepAssetId { get; set; }
     public ExternalComponentAsset? StepAsset { get; set; }
+    public long? ObjAssetId { get; set; }
+    public ExternalComponentAsset? ObjAsset { get; set; }
     public long? DatasheetAssetId { get; set; }
     public ExternalComponentAsset? DatasheetAsset { get; set; }
     public long? ManualAssetId { get; set; }
@@ -62,6 +74,11 @@ public sealed class ExternalComponentImport : BaseEntity
     public string? DevicePropertyRawJson { get; set; }
     public string? OtherPropertyRawJson { get; set; }
     public string? FullRawJson { get; set; }
+    public string? EasyEdaRawJson { get; set; }
+    public string? EasyEdaDataStrRawJson { get; set; }
+    public string? EasyEdaPackageDetailRawJson { get; set; }
+    public string? EasyEdaLcscRawJson { get; set; }
+    public string? EasyEdaCParaJson { get; set; }
 
     public ExternalImportStatus ImportStatus { get; set; }
     public string? DuplicateWarning { get; set; }
