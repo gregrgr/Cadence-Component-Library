@@ -1,5 +1,7 @@
 # EasyEDA Pro Import Extension
 
+Deprecated: Milestone B4 replaces this extension-driven flow with the backend EasyEDA/LCSC nlbn-style importer. This folder is retained only as historical reference and is not the recommended or CI-validated path.
+
 This extension exports EasyEDA Pro library metadata into the staging layer of `CadenceComponentLibraryAdmin`.
 
 Important architecture rule:

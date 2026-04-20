@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "result": {
+    "title": "C0603",
+    "description": "Ceramic capacitor",
+    "dataStr": {
+      "head": {
+        "x": "3.2",
+        "y": "1.6",
+        "c_para": {
+          "BOM_Manufacturer": "Murata",
+          "package": "0603",
+          "BOM_JLCPCB Part Class": "Capacitors"
+        }
+      },
+      "shape": [
+        "RECT~0~0~20~10"
+      ]
+    },
+    "lcsc": {
+      "id": 7890
+    }
+  }
+}

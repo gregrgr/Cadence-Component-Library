@@ -6,6 +6,7 @@ namespace CadenceComponentLibraryAdmin.Application.Interfaces;
 
 public interface IExternalImportService
 {
+    [Obsolete("Deprecated in B4. Use INlbnEasyEdaClient.ImportByLcscIdAsync for new EasyEDA/LCSC imports.")]
     Task<ExternalImportUpsertResult> UpsertEasyEdaComponentAsync(
         EasyEdaComponentImportRequest request,
         string actor,
@@ -30,7 +31,7 @@ public interface IExternalImportService
 
 public sealed record EasyEdaComponentImportRequest
 {
-    public string SourceName { get; init; } = "EasyEDA Pro";
+    public string SourceName { get; init; } = "EasyEDA/LCSC";
     public string? ExternalDeviceUuid { get; init; }
     public string? ExternalLibraryUuid { get; init; }
     public string? SearchKeyword { get; init; }

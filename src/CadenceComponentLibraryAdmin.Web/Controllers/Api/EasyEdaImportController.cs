@@ -9,6 +9,7 @@ namespace CadenceComponentLibraryAdmin.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/import/easyeda")]
+[Obsolete("Deprecated in B4. Use /api/import/easyeda-nlbn/lcsc/{lcscId} or /ExternalImports/ImportFromLcsc.")]
 public sealed class EasyEdaImportController : ControllerBase
 {
     private readonly IExternalImportService _externalImportService;

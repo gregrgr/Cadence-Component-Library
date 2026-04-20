@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "result": {
+    "title": "USBLC6-2SC6",
+    "description": "ESD protection array",
+    "dataStr": {
+      "head": {
+        "x": 12.5,
+        "y": 7.75,
+        "c_para": {
+          "BOM_Manufacturer": "STMicroelectronics",
+          "package": "SOT-23-6",
+          "BOM_JLCPCB Part Class": "Protection Devices"
+        }
+      },
+      "shape": [
+        "P~0 0 100 100"
+      ]
+    },
+    "packageDetail": {
+      "title": "SOT-23-6",
+      "dataStr": {
+        "head": {
+          "x": 20.25,
+          "y": 8.5
+        },
+        "shape": [
+          "PAD~1~10~10",
+          "SVGNODE~{\"attrs\":{\"c_etype\":\"outline3D\",\"uuid\":\"3d-uuid-001\",\"title\":\"SOT-23-6 Body\"}}"
+        ]
+      }
+    },
+    "lcsc": {
+      "id": 123456,
+      "url": "https://item.szlcsc.com/123456.html"
+    }
+  }
+}

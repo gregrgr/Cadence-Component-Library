@@ -19,10 +19,10 @@ public sealed class ExternalImportSourceConfiguration : IEntityTypeConfiguration
         builder.HasData(new ExternalImportSource
         {
             Id = 1,
-            SourceName = "EasyEDA Pro",
-            SourceType = ExternalImportSourceType.EasyEdaProSdk,
+            SourceName = "EasyEDA/LCSC",
+            SourceType = ExternalImportSourceType.EasyEdaLcscNlbnStyle,
             Enabled = true,
-            Notes = "Seeded import source for the EasyEDA Pro extension staging connector.",
+            Notes = "Seeded import source for the nlbn-style EasyEDA/LCSC staging connector.",
             CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, DateTimeKind.Utc),
             CreatedBy = "system",
             IsDeleted = false

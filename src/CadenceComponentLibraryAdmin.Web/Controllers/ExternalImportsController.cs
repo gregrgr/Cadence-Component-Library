@@ -16,15 +16,18 @@ public sealed class ExternalImportsController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IExternalImportService _externalImportService;
+    private readonly INlbnEasyEdaClient _nlbnEasyEdaClient;
     private readonly ExternalImportOptions _options;
 
     public ExternalImportsController(
         ApplicationDbContext dbContext,
         IExternalImportService externalImportService,
+        INlbnEasyEdaClient nlbnEasyEdaClient,
         IOptions<ExternalImportOptions> options)
     {
         _dbContext = dbContext;
         _externalImportService = externalImportService;
+        _nlbnEasyEdaClient = nlbnEasyEdaClient;
         _options = options.Value;
     }
 
@@ -38,7 +41,6 @@ public sealed class ExternalImportsController : Controller
         string? model3D,
         ExternalImportStatus? importStatus,
         bool hasDatasheet = false,
-        bool hasManual = false,
         bool hasStep = false,
         bool has3D = false,
         bool hasThumbnail = false,
@@ -75,12 +77,16 @@ public sealed class ExternalImportsController : Controller
 
         if (!string.IsNullOrWhiteSpace(symbol))
         {
-            query = query.Where(x => x.SymbolName != null && x.SymbolName.Contains(symbol));
+            query = query.Where(x =>
+                (x.SymbolName != null && x.SymbolName.Contains(symbol)) ||
+                (x.SymbolShapeJson != null && x.SymbolShapeJson.Contains(symbol)));
         }
 
         if (!string.IsNullOrWhiteSpace(footprint))
         {
-            query = query.Where(x => x.FootprintName != null && x.FootprintName.Contains(footprint));
+            query = query.Where(x =>
+                (x.FootprintName != null && x.FootprintName.Contains(footprint)) ||
+                (x.PackageName != null && x.PackageName.Contains(footprint)));
         }
 
         if (!string.IsNullOrWhiteSpace(model3D))
@@ -98,11 +104,6 @@ public sealed class ExternalImportsController : Controller
             query = query.Where(x => x.DatasheetAssetId.HasValue || x.DatasheetUrl != null);
         }
 
-        if (hasManual)
-        {
-            query = query.Where(x => x.ManualAssetId.HasValue || x.ManualUrl != null);
-        }
-
         if (hasStep)
         {
             query = query.Where(x => x.StepAssetId.HasValue || x.StepUrl != null);
@@ -115,7 +116,7 @@ public sealed class ExternalImportsController : Controller
 
         if (hasThumbnail)
         {
-            query = query.Where(x => x.FootprintRenderAssetId.HasValue);
+            query = query.Where(x => x.FootprintPreviewAssetId.HasValue || x.FootprintRenderAssetId.HasValue);
         }
 
         if (duplicateWarning)
@@ -135,19 +136,19 @@ public sealed class ExternalImportsController : Controller
                 Manufacturer = x.Manufacturer,
                 ManufacturerPN = x.ManufacturerPN,
                 LcscId = x.LcscId,
-                Supplier = x.Supplier,
-                SupplierId = x.SupplierId,
-                SymbolName = x.SymbolName,
-                FootprintName = x.FootprintName,
+                PackageName = x.PackageName ?? x.FootprintName,
                 Model3DName = x.Model3DName,
                 HasDatasheet = x.DatasheetAssetId.HasValue || x.DatasheetUrl != null,
-                HasManual = x.ManualAssetId.HasValue || x.ManualUrl != null,
                 HasStep = x.StepAssetId.HasValue || x.StepUrl != null,
-                HasRawJson = x.FullRawJson != null || x.DeviceItemRawJson != null || x.SearchItemRawJson != null,
-                HasThumbnail = x.FootprintRenderAssetId.HasValue,
+                HasObj = x.ObjAssetId.HasValue,
+                HasSymbolRaw = x.SymbolShapeJson != null,
+                HasFootprintRaw = x.FootprintShapeJson != null,
+                HasRawJson = x.EasyEdaRawJson != null || x.FullRawJson != null,
+                HasPreview = x.FootprintPreviewAssetId.HasValue || x.FootprintRenderAssetId.HasValue,
+                Has3DModel = x.Model3DUuid != null || x.Model3DName != null,
                 DuplicateWarning = x.DuplicateWarning,
                 ImportStatus = x.ImportStatus,
-                ThumbnailAssetId = x.FootprintRenderAssetId
+                PreviewAssetId = x.FootprintPreviewAssetId ?? x.FootprintRenderAssetId
             })
             .ToListAsync();
 
@@ -169,11 +170,19 @@ public sealed class ExternalImportsController : Controller
             Model3D = model3D,
             ImportStatus = importStatus,
             HasDatasheet = hasDatasheet,
-            HasManual = hasManual,
             HasStep = hasStep,
             Has3D = has3D,
             HasThumbnail = hasThumbnail,
-            DuplicateWarning = duplicateWarning
+            DuplicateWarning = duplicateWarning,
+            ImportForm = new ExternalImportFromLcscInputModel
+            {
+                GeneratePreview = _options.EasyEdaNlbn.GeneratePreviewByDefault
+            },
+            BatchImportForm = new ExternalImportBatchInputModel
+            {
+                GeneratePreview = _options.EasyEdaNlbn.GeneratePreviewByDefault,
+                MaxParallelImports = _options.EasyEdaNlbn.MaxParallelImports
+            }
         });
     }
 
@@ -212,6 +221,117 @@ public sealed class ExternalImportsController : Controller
         var candidate = await _externalImportService.CreateCandidateAsync(id, User.Identity?.Name ?? "system");
         TempData["SuccessMessage"] = $"Online Candidate #{candidate.Id} created from external import.";
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Librarian,EEReviewer")]
+    public async Task<IActionResult> ImportFromLcsc(ExternalImportFromLcscInputModel input, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(input.LcscId))
+        {
+            TempData["ErrorMessage"] = "LCSC ID is required.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        try
+        {
+            var import = await _nlbnEasyEdaClient.ImportByLcscIdAsync(
+                input.LcscId,
+                new NlbnImportOptions(input.DownloadStep, input.DownloadObj, input.GeneratePreview),
+                User.Identity?.Name ?? "system",
+                cancellationToken);
+
+            TempData["SuccessMessage"] = $"Imported {import.LcscId} into staging.";
+            return RedirectToAction(nameof(Details), new { id = import.Id });
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Librarian,EEReviewer")]
+    public async Task<IActionResult> BatchImportFromLcsc(ExternalImportBatchInputModel input, CancellationToken cancellationToken)
+    {
+        var lcscIds = (input.LcscIds ?? string.Empty)
+            .Split(['\r', '\n', ',', ';', '\t', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (lcscIds.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Please enter at least one LCSC ID.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var maxParallel = Math.Clamp(
+            input.MaxParallelImports ?? _options.EasyEdaNlbn.MaxParallelImports,
+            1,
+            Math.Max(1, _options.EasyEdaNlbn.MaxParallelImports));
+
+        var semaphore = new SemaphoreSlim(maxParallel, maxParallel);
+        var importedIds = new List<string>();
+        var errors = new List<string>();
+
+        var tasks = lcscIds.Select(async lcscId =>
+        {
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                await _nlbnEasyEdaClient.ImportByLcscIdAsync(
+                    lcscId,
+                    new NlbnImportOptions(input.DownloadStep, false, input.GeneratePreview),
+                    User.Identity?.Name ?? "system",
+                    cancellationToken);
+
+                lock (importedIds)
+                {
+                    importedIds.Add(lcscId);
+                }
+            }
+            catch (Exception ex)
+            {
+                lock (errors)
+                {
+                    errors.Add($"{lcscId}: {ex.Message}");
+                }
+
+                if (!input.ContinueOnError)
+                {
+                    throw;
+                }
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
+
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch when (input.ContinueOnError)
+        {
+            // Errors are already collected above.
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Batch import stopped: {ex.Message}";
+            return RedirectToAction(nameof(Index));
+        }
+
+        TempData["SuccessMessage"] = $"Batch import finished. Imported {importedIds.Count} item(s).";
+        if (errors.Count > 0)
+        {
+            TempData["ErrorMessage"] = string.Join(Environment.NewLine, errors.Take(5));
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]

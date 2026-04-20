@@ -20,6 +20,36 @@
             return value;
         }
     }
+
+    private int CountShapes(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return 0;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(value);
+            if (document.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                return document.RootElement.GetArrayLength();
+            }
+
+            if (document.RootElement.ValueKind == JsonValueKind.String)
+            {
+                return document.RootElement.GetString()?
+                    .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Length ?? 0;
+            }
+        }
+        catch (JsonException)
+        {
+            return value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+        }
+
+        return 0;
+    }
 }
 
 @{
@@ -30,7 +60,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="h4 mb-1">External Import Details</h1>
-        <p class="text-muted mb-0">Staging-only EasyEDA import. No approved library data is created from this page.</p>
+        <p class="text-muted mb-0">Staging-only EasyEDA/LCSC import. No APPROVED CompanyPart or Released FootprintVariant is created automatically from this page.</p>
     </div>
     <div class="d-flex gap-2">
         <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
@@ -60,20 +90,22 @@
                     <dd class="col-sm-8">@item.Name</dd>
                     <dt class="col-sm-4">Source</dt>
                     <dd class="col-sm-8">@item.SourceName</dd>
-                    <dt class="col-sm-4">Device UUID</dt>
-                    <dd class="col-sm-8">@item.ExternalDeviceUuid</dd>
-                    <dt class="col-sm-4">Library UUID</dt>
-                    <dd class="col-sm-8">@item.ExternalLibraryUuid</dd>
                     <dt class="col-sm-4">LCSC ID</dt>
                     <dd class="col-sm-8">@item.LcscId</dd>
                     <dt class="col-sm-4">Manufacturer</dt>
                     <dd class="col-sm-8">@item.Manufacturer</dd>
-                    <dt class="col-sm-4">Manufacturer PN</dt>
+                    <dt class="col-sm-4">Manufacturer PN Candidate</dt>
                     <dd class="col-sm-8">@item.ManufacturerPN</dd>
+                    <dt class="col-sm-4">Package Name</dt>
+                    <dd class="col-sm-8">@item.PackageName</dd>
+                    <dt class="col-sm-4">JLC Part Class</dt>
+                    <dd class="col-sm-8">@item.JlcPartClass</dd>
                     <dt class="col-sm-4">Description</dt>
                     <dd class="col-sm-8">@item.Description</dd>
-                    <dt class="col-sm-4">Classification</dt>
-                    <dd class="col-sm-8"><pre class="mb-0 small">@Pretty(item.ClassificationJson)</pre></dd>
+                    <dt class="col-sm-4">Datasheet</dt>
+                    <dd class="col-sm-8">@item.DatasheetUrl</dd>
+                    <dt class="col-sm-4">Manual</dt>
+                    <dd class="col-sm-8">@item.ManualUrl</dd>
                     <dt class="col-sm-4">Duplicate Warning</dt>
                     <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(item.DuplicateWarning) ? "None" : item.DuplicateWarning)</dd>
                     <dt class="col-sm-4">Import Status</dt>
@@ -86,41 +118,30 @@
 
         <div class="card page-card mb-4">
             <div class="card-body">
-                <h2 class="h5">Associations</h2>
+                <h2 class="h5">Shape Summary</h2>
                 <div class="row">
-                    <div class="col-md-4">
-                        <h3 class="h6">Supplier</h3>
-                        <p class="mb-1">@item.Supplier</p>
-                        <p class="text-muted small mb-0">@item.SupplierId</p>
+                    <div class="col-md-6">
+                        <div class="fw-semibold">Symbol</div>
+                        <div class="small text-muted">Shape count: @CountShapes(item.SymbolShapeJson)</div>
+                        <div class="small text-muted">BBox: @item.SymbolBBoxX / @item.SymbolBBoxY</div>
                     </div>
-                    <div class="col-md-4">
-                        <h3 class="h6">Symbol</h3>
-                        <p class="mb-1">@item.SymbolName</p>
-                        <p class="text-muted small mb-0">@item.SymbolUuid / @item.SymbolLibraryUuid</p>
-                    </div>
-                    <div class="col-md-4">
-                        <h3 class="h6">Footprint</h3>
-                        <p class="mb-1">@item.FootprintName</p>
-                        <p class="text-muted small mb-0">@item.FootprintUuid / @item.FootprintLibraryUuid</p>
+                    <div class="col-md-6">
+                        <div class="fw-semibold">Footprint</div>
+                        <div class="small text-muted">Shape count: @CountShapes(item.FootprintShapeJson)</div>
+                        <div class="small text-muted">BBox: @item.FootprintBBoxX / @item.FootprintBBoxY</div>
                     </div>
                 </div>
                 <hr />
                 <div class="row">
-                    <div class="col-md-4">
-                        <h3 class="h6">3D Model</h3>
-                        <p class="mb-1">@item.Model3DName</p>
-                        <p class="text-muted small mb-0">@item.Model3DUuid / @item.Model3DLibraryUuid</p>
+                    <div class="col-md-6">
+                        <div class="fw-semibold">3D Model</div>
+                        <div class="small text-muted">UUID: @item.Model3DUuid</div>
+                        <div class="small text-muted">Title: @item.Model3DName</div>
                     </div>
-                    <div class="col-md-4">
-                        <h3 class="h6">Supply</h3>
-                        <div class="small">JLC: @item.JlcInventory / @item.JlcPrice</div>
-                        <div class="small">LCSC: @item.LcscInventory / @item.LcscPrice</div>
-                    </div>
-                    <div class="col-md-4">
-                        <h3 class="h6">Documents</h3>
-                        <div class="small">Datasheet: @item.DatasheetUrl</div>
-                        <div class="small">Manual: @item.ManualUrl</div>
-                        <div class="small">STEP: @item.StepUrl</div>
+                    <div class="col-md-6">
+                        <div class="fw-semibold">Legacy Links</div>
+                        <div class="small text-muted">Footprint name: @item.FootprintName</div>
+                        <div class="small text-muted">STEP URL: @item.StepUrl</div>
                     </div>
                 </div>
             </div>
@@ -130,20 +151,18 @@
             <div class="card-body">
                 <h2 class="h5">Raw JSON</h2>
                 <ul class="nav nav-tabs" id="rawJsonTabs" role="tablist">
-                    <li class="nav-item" role="presentation"><button class="nav-link active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-json" type="button">SearchItem</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link" id="device-tab" data-bs-toggle="tab" data-bs-target="#device-json" type="button">DeviceItem</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link" id="assoc-tab" data-bs-toggle="tab" data-bs-target="#assoc-json" type="button">Association</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link" id="prop-tab" data-bs-toggle="tab" data-bs-target="#prop-json" type="button">Property</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-json" type="button">OtherProperty</button></li>
-                    <li class="nav-item" role="presentation"><button class="nav-link" id="full-tab" data-bs-toggle="tab" data-bs-target="#full-json" type="button">FullRaw</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link active" id="easyeda-raw-tab" data-bs-toggle="tab" data-bs-target="#easyeda-raw" type="button">EasyEDA raw response</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="datastr-tab" data-bs-toggle="tab" data-bs-target="#datastr-json" type="button">dataStr</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="package-tab" data-bs-toggle="tab" data-bs-target="#package-json" type="button">packageDetail</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="cpara-tab" data-bs-toggle="tab" data-bs-target="#cpara-json" type="button">c_para</button></li>
+                    <li class="nav-item" role="presentation"><button class="nav-link" id="lcsc-tab" data-bs-toggle="tab" data-bs-target="#lcsc-json" type="button">lcsc</button></li>
                 </ul>
                 <div class="tab-content border border-top-0 rounded-bottom p-3">
-                    <div class="tab-pane fade show active" id="search-json"><pre class="mb-0 small">@Pretty(item.SearchItemRawJson)</pre></div>
-                    <div class="tab-pane fade" id="device-json"><pre class="mb-0 small">@Pretty(item.DeviceItemRawJson)</pre></div>
-                    <div class="tab-pane fade" id="assoc-json"><pre class="mb-0 small">@Pretty(item.DeviceAssociationRawJson)</pre></div>
-                    <div class="tab-pane fade" id="prop-json"><pre class="mb-0 small">@Pretty(item.DevicePropertyRawJson)</pre></div>
-                    <div class="tab-pane fade" id="other-json"><pre class="mb-0 small">@Pretty(item.OtherPropertyRawJson)</pre></div>
-                    <div class="tab-pane fade" id="full-json"><pre class="mb-0 small">@Pretty(item.FullRawJson)</pre></div>
+                    <div class="tab-pane fade show active" id="easyeda-raw"><pre class="mb-0 small">@Pretty(item.EasyEdaRawJson ?? item.FullRawJson)</pre></div>
+                    <div class="tab-pane fade" id="datastr-json"><pre class="mb-0 small">@Pretty(item.EasyEdaDataStrRawJson)</pre></div>
+                    <div class="tab-pane fade" id="package-json"><pre class="mb-0 small">@Pretty(item.EasyEdaPackageDetailRawJson)</pre></div>
+                    <div class="tab-pane fade" id="cpara-json"><pre class="mb-0 small">@Pretty(item.EasyEdaCParaJson)</pre></div>
+                    <div class="tab-pane fade" id="lcsc-json"><pre class="mb-0 small">@Pretty(item.EasyEdaLcscRawJson)</pre></div>
                 </div>
             </div>
         </div>
@@ -153,13 +172,13 @@
         <div class="card page-card mb-4">
             <div class="card-body">
                 <h2 class="h5">Preview</h2>
-                @if (item.FootprintRenderAssetId.HasValue)
+                @if (item.FootprintPreviewAssetId.HasValue || item.FootprintRenderAssetId.HasValue)
                 {
-                    <img src="@Url.Action("Asset", new { id = item.FootprintRenderAssetId })" alt="footprint render" class="img-fluid rounded border mb-3" />
+                    <img src="@Url.Action("Asset", new { id = item.FootprintPreviewAssetId ?? item.FootprintRenderAssetId })" alt="footprint preview" class="img-fluid rounded border mb-3" />
                 }
                 else
                 {
-                    <p class="text-muted">No thumbnail or footprint render uploaded.</p>
+                    <p class="text-muted">No preview generated.</p>
                 }
             </div>
         </div>

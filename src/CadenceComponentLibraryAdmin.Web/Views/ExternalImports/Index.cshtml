@@ -2,18 +2,88 @@
 @model CadenceComponentLibraryAdmin.Web.Models.ExternalImportsIndexViewModel
 
 @{
-    ViewData["Title"] = "External Imports";
+    ViewData["Title"] = "External Imports - EasyEDA/LCSC";
 }
 
-<div class="card page-card">
+<div class="card page-card mb-4">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h1 class="h4 mb-1">External Imports</h1>
-                <p class="text-muted mb-0">Staging records imported from external sources such as EasyEDA Pro.</p>
+                <h1 class="h4 mb-1">External Imports - EasyEDA/LCSC</h1>
+                <p class="text-muted mb-0">Backend staging imports by LCSC ID. Imported data remains staging-only until a reviewer creates an Online Candidate.</p>
             </div>
         </div>
 
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="border rounded p-3 h-100">
+                    <h2 class="h6">Import from LCSC</h2>
+                    <form asp-action="ImportFromLcsc" method="post" class="row g-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col-12">
+                            <label class="form-label">LCSC ID</label>
+                            <input asp-for="ImportForm.LcscId" class="form-control" placeholder="C2040" />
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="ImportForm.DownloadStep" class="form-check-input" />
+                                <label asp-for="ImportForm.DownloadStep" class="form-check-label">Download STEP</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="ImportForm.DownloadObj" class="form-check-input" />
+                                <label asp-for="ImportForm.DownloadObj" class="form-check-label">Download OBJ</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="ImportForm.GeneratePreview" class="form-check-input" />
+                                <label asp-for="ImportForm.GeneratePreview" class="form-check-label">Generate footprint preview</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Import from LCSC</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="border rounded p-3 h-100">
+                    <h2 class="h6">Batch import</h2>
+                    <form asp-action="BatchImportFromLcsc" method="post" class="row g-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col-12">
+                            <label class="form-label">LCSC IDs</label>
+                            <textarea asp-for="BatchImportForm.LcscIds" class="form-control" rows="5" placeholder="One LCSC ID per line"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Max parallel imports</label>
+                            <input asp-for="BatchImportForm.MaxParallelImports" class="form-control" min="1" max="4" />
+                        </div>
+                        <div class="col-md-8 d-flex flex-column justify-content-end">
+                            <div class="form-check">
+                                <input asp-for="BatchImportForm.ContinueOnError" class="form-check-input" />
+                                <label asp-for="BatchImportForm.ContinueOnError" class="form-check-label">Continue on error</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="BatchImportForm.DownloadStep" class="form-check-input" />
+                                <label asp-for="BatchImportForm.DownloadStep" class="form-check-label">Download STEP</label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="BatchImportForm.GeneratePreview" class="form-check-input" />
+                                <label asp-for="BatchImportForm.GeneratePreview" class="form-check-label">Generate preview</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-outline-primary">Start batch import</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card page-card">
+    <div class="card-body">
         <form method="get" class="row g-3 mb-4">
             <div class="col-md-4">
                 <label class="form-label">Keyword</label>
@@ -32,11 +102,7 @@
                 <input name="manufacturerPn" class="form-control" value="@Model.ManufacturerPn" />
             </div>
             <div class="col-md-3">
-                <label class="form-label">Symbol</label>
-                <input name="symbol" class="form-control" value="@Model.Symbol" />
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Footprint</label>
+                <label class="form-label">Package</label>
                 <input name="footprint" class="form-control" value="@Model.Footprint" />
             </div>
             <div class="col-md-3">
@@ -53,14 +119,16 @@
                     }
                 </select>
             </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="duplicateWarning" value="true" checked="@Model.DuplicateWarning" id="duplicateWarning" />
+                    <label class="form-check-label" for="duplicateWarning">Duplicate warning</label>
+                </div>
+            </div>
             <div class="col-md-12 d-flex flex-wrap gap-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="hasDatasheet" value="true" checked="@Model.HasDatasheet" id="hasDatasheet" />
                     <label class="form-check-label" for="hasDatasheet">Has datasheet</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="hasManual" value="true" checked="@Model.HasManual" id="hasManual" />
-                    <label class="form-check-label" for="hasManual">Has manual</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="hasStep" value="true" checked="@Model.HasStep" id="hasStep" />
@@ -68,15 +136,11 @@
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="has3D" value="true" checked="@Model.Has3D" id="has3D" />
-                    <label class="form-check-label" for="has3D">Has 3D</label>
+                    <label class="form-check-label" for="has3D">Has 3D model</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="hasThumbnail" value="true" checked="@Model.HasThumbnail" id="hasThumbnail" />
-                    <label class="form-check-label" for="hasThumbnail">Has thumbnail</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="duplicateWarning" value="true" checked="@Model.DuplicateWarning" id="duplicateWarning" />
-                    <label class="form-check-label" for="duplicateWarning">Duplicate warning</label>
+                    <label class="form-check-label" for="hasThumbnail">Has preview</label>
                 </div>
             </div>
             <div class="col-12 d-flex gap-2">
@@ -90,14 +154,11 @@
                 <thead>
                 <tr>
                     <th>Preview</th>
+                    <th>LCSC ID</th>
                     <th>Name</th>
                     <th>Manufacturer</th>
-                    <th>MPN</th>
-                    <th>LCSC</th>
-                    <th>Supplier</th>
-                    <th>Symbol</th>
-                    <th>Footprint</th>
-                    <th>3D</th>
+                    <th>MPN Candidate</th>
+                    <th>Package</th>
                     <th>Assets</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -107,16 +168,17 @@
                 @foreach (var item in Model.Result.Items)
                 {
                     <tr>
-                        <td style="width: 80px;">
-                            @if (item.ThumbnailAssetId.HasValue)
+                        <td style="width: 92px;">
+                            @if (item.PreviewAssetId.HasValue)
                             {
-                                <img src="@Url.Action("Asset", new { id = item.ThumbnailAssetId })" alt="thumbnail" class="img-fluid rounded border" />
+                                <img src="@Url.Action("Asset", new { id = item.PreviewAssetId })" alt="preview" class="img-fluid rounded border" />
                             }
                             else
                             {
-                                <span class="text-muted small">No image</span>
+                                <span class="text-muted small">No preview</span>
                             }
                         </td>
+                        <td class="font-monospace">@item.LcscId</td>
                         <td>
                             <div class="fw-semibold">@item.Name</div>
                             @if (!string.IsNullOrWhiteSpace(item.DuplicateWarning))
@@ -126,16 +188,16 @@
                         </td>
                         <td>@item.Manufacturer</td>
                         <td>@item.ManufacturerPN</td>
-                        <td>@item.LcscId</td>
-                        <td>@item.Supplier / @item.SupplierId</td>
-                        <td>@item.SymbolName</td>
-                        <td>@item.FootprintName</td>
-                        <td>@item.Model3DName</td>
+                        <td>@item.PackageName</td>
                         <td>
                             @if (item.HasDatasheet) { <span class="badge text-bg-primary me-1">Datasheet</span> }
-                            @if (item.HasManual) { <span class="badge text-bg-info me-1">Manual</span> }
+                            @if (item.HasSymbolRaw) { <span class="badge text-bg-dark me-1">Symbol Raw</span> }
+                            @if (item.HasFootprintRaw) { <span class="badge text-bg-dark me-1">Footprint Raw</span> }
+                            @if (item.Has3DModel) { <span class="badge text-bg-info me-1">3D Model</span> }
                             @if (item.HasStep) { <span class="badge text-bg-secondary me-1">STEP</span> }
-                            @if (item.HasRawJson) { <span class="badge text-bg-dark">Raw JSON</span> }
+                            @if (item.HasObj) { <span class="badge text-bg-secondary me-1">OBJ</span> }
+                            @if (item.HasPreview) { <span class="badge text-bg-success me-1">Preview</span> }
+                            @if (item.HasRawJson) { <span class="badge text-bg-light border">Raw JSON</span> }
                         </td>
                         <td><span class="badge text-bg-light border">@item.ImportStatus</span></td>
                         <td>

@@ -31,5 +31,8 @@
     <None Include="..\\..\\src\\CadenceComponentLibraryAdmin.Infrastructure\\Data\\Views\\CisViews.sql" Link="Data\\Views\\CisViews.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="TestData\\EasyEdaNlbn\\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

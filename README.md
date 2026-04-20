@@ -34,7 +34,7 @@ The repository currently includes:
   - alternate-level checks
   - approval queue validation and status transitions
 - Identity, role seeding, and admin bootstrap support
-- EasyEDA Pro staging import connector
+- EasyEDA/LCSC nlbn-style staging import connector
 - Docker Compose runtime
 - GitHub Actions CI
 - Formal EF Core migration baseline (`InitialCreate`)
@@ -144,62 +144,55 @@ Protection rules:
 - at least one active `Admin` user must remain
 - user and role admin actions are written to `AdminAuditLogs`
 
-## EasyEDA Pro import connector
+## EasyEDA/LCSC import connector
 
-Milestone B3 adds a staging-only EasyEDA Pro import pipeline.
+Milestone B4 replaces the EasyEDA Pro SDK extension path with a backend nlbn-style EasyEDA/LCSC client.
 
 Key rules:
 
-- the EasyEDA Pro SDK runs only inside the EasyEDA Pro extension
-- the `.NET` backend exposes import APIs and does not call `easyeda/pro-api-sdk` directly
+- the backend imports by `LCSC ID`
+- the backend calls the EasyEDA/LCSC web endpoints directly and preserves raw JSON aggressively
 - imports land only in staging tables and can be reviewed in `/ExternalImports`
 - imported records do not become approved `CompanyParts` automatically
-- imported footprints are not converted automatically into Allegro `PSM` / `DRA`
+- imported footprints do not become released `FootprintVariants` automatically
+- EasyEDA footprints are not converted into Allegro `PSM` / `DRA` in this milestone
 
-Backend endpoints:
+Primary endpoints:
 
-- `POST /api/import/easyeda/component`
-- `POST /api/import/easyeda/component/{id}/asset`
-- `POST /api/import/easyeda/component/{id}/create-candidate`
+- `POST /ExternalImports/ImportFromLcsc`
+- `POST /api/import/easyeda-nlbn/lcsc/{lcscId}`
 
-Security:
+Import options:
 
-- ingest endpoints require `X-Import-Api-Key`
-- configure the shared key with `ExternalImports:EasyEdaApiKey`
-- `.env.example` contains a placeholder only; do not commit a real import key
+- LCSC ID import
+- batch LCSC ID import
+- optional STEP download
+- optional OBJ download for single import
+- optional footprint preview generation
 
-Storage:
+Stored staging data:
 
-- local default asset storage root: `App_Data/ExternalImports`
-- Docker override: `/app-data/ExternalImports`
+- basic metadata, manufacturer, MPN candidate, LCSC ID, description, package name
+- datasheet / manual URL
+- raw symbol / footprint preservation
+- 3D UUID / title when discoverable from `SVGNODE~...outline3D`
+- optional STEP / OBJ assets
+- footprint preview generation through SVG or placeholder preview
+- full raw EasyEDA response JSON plus extracted `dataStr`, `packageDetail`, `lcsc`, and `c_para`
 
-Review UI:
+Configuration:
 
-- `/ExternalImports`
-  - list staged imports
-  - inspect raw JSON snapshots
-  - inspect linked thumbnail / render / document / STEP assets
-  - create `OnlineCandidate` records explicitly
-  - reject staged imports
+- `ExternalImports:StorageRoot`
+- `ExternalImports:EasyEdaNlbn:*`
 
-Extension project:
+Reference docs:
 
-- `integrations/easyeda-pro-import-extension`
+- `docs/EASYEDA_IMPORT.md`
+- `docs/AUDIT.md`
 
-Extension build:
+Deprecated legacy path:
 
-```bash
-cd integrations/easyeda-pro-import-extension
-npm install
-npm run typecheck
-npm run build
-```
-
-Extension install/config details:
-
-- see `integrations/easyeda-pro-import-extension/README.md`
-- see `docs/EASYEDA_IMPORT.md`
-- sample payloads are under `docs/samples/easyeda/`
+- the old extension-based path is retained only as deprecated reference material and is no longer the recommended or CI-validated flow
 
 ## Running locally
 
@@ -344,8 +337,6 @@ GitHub Actions CI runs:
 - `dotnet restore`
 - `dotnet build --no-restore --configuration Release`
 - `dotnet test --no-build --configuration Release`
-- `npm install` for `integrations/easyeda-pro-import-extension`
-- `npm run build` for `integrations/easyeda-pro-import-extension`
 
 CI also provides SQL Server so integration tests can verify:
 
@@ -379,13 +370,13 @@ Important indexes:
 - The repository still relies on SQL Server as the primary relational target; local work without SQL Server usually uses Docker.
 - The baseline migration is formalized, but future schema changes still need deliberate migration discipline.
 - The application still relies on ASP.NET Core Identity UI defaults for interactive sign-in and password policies.
-- The EasyEDA Pro connector depends on BETA extension APIs and best-effort document discovery.
-- The EasyEDA extension build is CI-safe, but direct SDK calls still require the EasyEDA Pro editor runtime.
+- The EasyEDA/LCSC import depends on unofficial web response shapes that may change over time.
+- Not every component exposes `packageDetail`, `outline3D`, STEP, or OBJ assets.
 - Automated vendor download, footprint generation, `.olb` generation, ERP / PLM sync, and advanced multi-step workflows are not implemented yet.
 
 ## Planned next steps
 
-Recommended order after Milestone B3:
+Recommended order after Milestone B4:
 
 1. richer dashboard metrics
 2. bulk import / export workflows across staging sources

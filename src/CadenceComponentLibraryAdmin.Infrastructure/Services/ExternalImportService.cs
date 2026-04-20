@@ -32,7 +32,7 @@ public sealed class ExternalImportService : IExternalImportService
         string actor,
         CancellationToken cancellationToken = default)
     {
-        var sourceName = string.IsNullOrWhiteSpace(request.SourceName) ? "EasyEDA Pro" : request.SourceName.Trim();
+        var sourceName = string.IsNullOrWhiteSpace(request.SourceName) ? "EasyEDA/LCSC" : request.SourceName.Trim();
         var entity = await FindExistingImportAsync(sourceName, request.ExternalDeviceUuid, request.LcscId, cancellationToken)
             ?? new ExternalComponentImport
             {
@@ -190,15 +190,15 @@ public sealed class ExternalImportService : IExternalImportService
 
         var candidate = new OnlineCandidate
         {
-            SourceProvider = import.SourceName,
+            SourceProvider = "EasyEDA/LCSC nlbn-style",
             Manufacturer = import.Manufacturer ?? "Unknown",
             ManufacturerPN = import.ManufacturerPN ?? (import.LcscId ?? import.Name ?? $"easyeda-import-{import.Id}"),
             Description = string.IsNullOrWhiteSpace(import.Description) ? import.Name : import.Description,
-            RawPackageName = import.FootprintName,
-            DatasheetUrl = import.DatasheetUrl ?? import.ManualUrl ?? import.StepUrl,
-            SymbolDownloaded = !string.IsNullOrWhiteSpace(import.SymbolName),
-            FootprintDownloaded = !string.IsNullOrWhiteSpace(import.FootprintName),
-            StepDownloaded = import.StepAssetId.HasValue || !string.IsNullOrWhiteSpace(import.StepUrl) || !string.IsNullOrWhiteSpace(import.Model3DUuid),
+            RawPackageName = import.PackageName ?? import.FootprintName,
+            DatasheetUrl = import.DatasheetUrl,
+            SymbolDownloaded = !string.IsNullOrWhiteSpace(import.SymbolShapeJson) || !string.IsNullOrWhiteSpace(import.SymbolName),
+            FootprintDownloaded = !string.IsNullOrWhiteSpace(import.FootprintShapeJson) || !string.IsNullOrWhiteSpace(import.FootprintName),
+            StepDownloaded = import.StepAssetId.HasValue || !string.IsNullOrWhiteSpace(import.Model3DUuid),
             LifecycleStatus = LifecycleStatus.Unknown,
             CandidateStatus = CandidateStatus.NewFromWeb,
             ImportNote = $"Created from External Import #{import.Id} ({import.SourceName}).",
@@ -238,6 +238,10 @@ public sealed class ExternalImportService : IExternalImportService
             case ExternalComponentAssetType.FootprintRenderImage:
                 import.FootprintRenderAssetId = asset.Id;
                 break;
+            case ExternalComponentAssetType.FootprintPreview:
+                import.FootprintPreviewAssetId = asset.Id;
+                import.FootprintRenderAssetId = asset.Id;
+                break;
             case ExternalComponentAssetType.Datasheet:
                 import.DatasheetAssetId = asset.Id;
                 break;
@@ -246,6 +250,9 @@ public sealed class ExternalImportService : IExternalImportService
                 break;
             case ExternalComponentAssetType.Step:
                 import.StepAssetId = asset.Id;
+                break;
+            case ExternalComponentAssetType.Obj:
+                import.ObjAssetId = asset.Id;
                 break;
         }
 
