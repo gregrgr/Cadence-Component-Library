@@ -8,7 +8,12 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
     public ApplicationDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseSqlServer("Server=localhost;Database=CadenceComponentLibrary;Trusted_Connection=True;TrustServerCertificate=True;");
+        var connectionString =
+            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") ??
+            Environment.GetEnvironmentVariable("CADENCE_DEFAULT_CONNECTION") ??
+            "Server=localhost;Database=CadenceComponentLibrary;Trusted_Connection=True;TrustServerCertificate=True;";
+
+        optionsBuilder.UseSqlServer(connectionString);
         return new ApplicationDbContext(optionsBuilder.Options);
     }
 }
