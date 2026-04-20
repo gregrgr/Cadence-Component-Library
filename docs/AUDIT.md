@@ -5,6 +5,7 @@ This document captures the Milestone A hardening pass for buildability, smoke co
 ## What was checked
 
 - CI now runs `dotnet restore`, `dotnet build`, and `dotnet test` on every PR to `main`.
+- CI provides a SQL Server service so the bootstrap smoke suite can execute the CIS view install path against a real relational database.
 - The test project is no longer a placeholder. It includes executable smoke and unit coverage for:
   - identity seeding behavior
   - audit timestamps in `ApplicationDbContext`
@@ -13,6 +14,7 @@ This document captures the Milestone A hardening pass for buildability, smoke co
   - CIS view bootstrap statements
 - Docker Compose is still the primary local runtime path for machines without a local `.NET 10 SDK`.
 - `DatabaseBootstrapper` still owns schema bootstrapping and SQL view installation. The hardening pass did not replace the current architecture with a different startup model.
+- The authoritative CIS view definition now comes from `src/CadenceComponentLibraryAdmin.Infrastructure/Data/Views/CisViews.sql`, which is copied into the application output for runtime bootstrap.
 
 ## Security and environment posture
 

@@ -25,4 +25,10 @@
     <ProjectReference Include="..\\..\\src\\CadenceComponentLibraryAdmin.Domain\\CadenceComponentLibraryAdmin.Domain.csproj" />
     <ProjectReference Include="..\\..\\src\\CadenceComponentLibraryAdmin.Infrastructure\\CadenceComponentLibraryAdmin.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\\..\\src\\CadenceComponentLibraryAdmin.Infrastructure\\Data\\Views\\CisViews.sql" Link="Data\\Views\\CisViews.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
