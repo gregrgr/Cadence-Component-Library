@@ -6,19 +6,38 @@ namespace CadenceComponentLibraryAdmin.Infrastructure.Seed;
 
 public static class IdentitySeeder
 {
-    public static async Task SeedAsync(IServiceProvider serviceProvider)
+    public static async Task SeedAsync(IServiceProvider serviceProvider, bool seedDefaultAdmin)
     {
         using var scope = serviceProvider.CreateScope();
 
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+        await SeedAsync(roleManager, userManager, seedDefaultAdmin);
+    }
+
+    internal static async Task SeedAsync(
+        RoleManager<IdentityRole> roleManager,
+        UserManager<ApplicationUser> userManager,
+        bool seedDefaultAdmin)
+    {
+
         foreach (var role in IdentitySeedData.Roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                var roleResult = await roleManager.CreateAsync(new IdentityRole(role));
+                if (!roleResult.Succeeded)
+                {
+                    var errors = string.Join("; ", roleResult.Errors.Select(x => x.Description));
+                    throw new InvalidOperationException($"Failed to create role '{role}': {errors}");
+                }
             }
+        }
+
+        if (!seedDefaultAdmin)
+        {
+            return;
         }
 
         var adminUser = await userManager.FindByEmailAsync(IdentitySeedData.AdminEmail);

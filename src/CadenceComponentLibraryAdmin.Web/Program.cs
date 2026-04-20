@@ -70,6 +70,6 @@ using (var scope = app.Services.CreateScope())
     await DatabaseBootstrapper.InitializeAsync(dbContext);
 }
 
-await IdentitySeeder.SeedAsync(app.Services);
+await IdentitySeeder.SeedAsync(app.Services, app.Environment.IsDevelopment());
 
 app.Run();

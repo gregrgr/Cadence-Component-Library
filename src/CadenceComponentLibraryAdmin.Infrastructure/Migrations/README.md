@@ -2,8 +2,10 @@
 
 This folder is reserved for EF Core migrations.
 
-The full entity model and DbContext for Milestone 2 are now in place.
-Generate the initial migration with:
+The current application still supports startup without generated migrations by using `DatabaseBootstrapper`.
+That fallback remains in place for Milestone A audit and CI hardening.
+
+The next infrastructure follow-up is to generate and commit the first formal migration:
 
 ```powershell
 dotnet ef migrations add InitialCreate --project src/CadenceComponentLibraryAdmin.Infrastructure --startup-project src/CadenceComponentLibraryAdmin.Web
