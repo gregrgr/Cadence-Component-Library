@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CadenceComponentLibraryAdmin.Web.Controllers;
 
-[Authorize(Roles = "Admin,Librarian")]
+[Authorize(Roles = "Admin,Librarian,EEReviewer,Viewer")]
 public sealed class SymbolFamiliesController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
@@ -50,6 +50,11 @@ public sealed class SymbolFamiliesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(SymbolFamily model)
     {
+        if (!CanMutateSymbolFamilies())
+        {
+            return Forbid();
+        }
+
         if (!ModelState.IsValid) return View(model);
 
         model.CreatedBy = User.Identity?.Name;
@@ -69,6 +74,11 @@ public sealed class SymbolFamiliesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(long id, SymbolFamily model)
     {
+        if (!CanMutateSymbolFamilies())
+        {
+            return Forbid();
+        }
+
         if (id != model.Id) return NotFound();
         if (!ModelState.IsValid) return View(model);
 
@@ -93,6 +103,11 @@ public sealed class SymbolFamiliesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(long id)
     {
+        if (!CanMutateSymbolFamilies())
+        {
+            return Forbid();
+        }
+
         var item = await _dbContext.SymbolFamilies.FirstOrDefaultAsync(x => x.Id == id);
         if (item is not null)
         {
@@ -104,4 +119,7 @@ public sealed class SymbolFamiliesController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    private bool CanMutateSymbolFamilies()
+        => User.IsInRole("Admin") || User.IsInRole("Librarian");
 }

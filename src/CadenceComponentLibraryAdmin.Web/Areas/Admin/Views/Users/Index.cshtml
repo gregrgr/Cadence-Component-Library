@@ -1,0 +1,75 @@
+@model CadenceComponentLibraryAdmin.Web.Models.AdminUsersIndexViewModel
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Users</h1>
+        <div class="text-muted">Admin-only user administration for Identity accounts and role assignments.</div>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Create User</a>
+</div>
+
+<div class="page-card card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <label class="form-label">Search by email or username</label>
+                <input name="search" value="@Model.Search" class="form-control" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Search</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-card card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Email</th>
+                    <th>UserName</th>
+                    <th>Roles</th>
+                    <th>EmailConfirmed</th>
+                    <th>LockoutEnabled</th>
+                    <th>LockoutEnd</th>
+                    <th>AccessFailedCount</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td class="fw-semibold">@user.Email</td>
+                    <td>@user.UserName</td>
+                    <td>@(user.Roles.Count == 0 ? "-" : string.Join(", ", user.Roles))</td>
+                    <td>@(user.EmailConfirmed ? "Yes" : "No")</td>
+                    <td>@(user.LockoutEnabled ? "Yes" : "No")</td>
+                    <td>@(user.LockoutEnd?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                    <td>@user.AccessFailedCount</td>
+                    <td class="text-end">
+                        <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-action="ResetPassword" asp-route-id="@user.Id" class="btn btn-sm btn-outline-warning">Reset Password</a>
+                        @if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow)
+                        {
+                            <form asp-action="Unlock" asp-route-id="@user.Id" method="post" class="d-inline" onsubmit="return confirm('Unlock this user?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-success">Unlock</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Lock" asp-route-id="@user.Id" method="post" class="d-inline" onsubmit="return confirm('Lock this user?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Lock</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

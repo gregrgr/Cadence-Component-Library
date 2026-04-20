@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CadenceComponentLibraryAdmin.Web.Controllers;
 
-[Authorize(Roles = "Admin,Librarian,EEReviewer,Purchasing,Designer")]
+[Authorize(Roles = "Admin,Librarian,EEReviewer,Purchasing,Designer,Viewer")]
 public sealed class CompanyPartsController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
@@ -144,6 +144,11 @@ public sealed class CompanyPartsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CompanyPart model)
     {
+        if (!CanMutateCompanyParts())
+        {
+            return Forbid();
+        }
+
         if (!ModelState.IsValid)
         {
             PopulateLookups();
@@ -181,6 +186,11 @@ public sealed class CompanyPartsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(long id, CompanyPart model)
     {
+        if (!CanMutateCompanyParts())
+        {
+            return Forbid();
+        }
+
         if (id != model.Id) return NotFound();
         if (!ModelState.IsValid)
         {
@@ -231,6 +241,11 @@ public sealed class CompanyPartsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(long id)
     {
+        if (!CanMutateCompanyParts())
+        {
+            return Forbid();
+        }
+
         var item = await _dbContext.CompanyParts.FirstOrDefaultAsync(x => x.Id == id);
         if (item is not null)
         {
@@ -249,4 +264,7 @@ public sealed class CompanyPartsController : Controller
         ViewBag.PackageFamilies = new SelectList(_dbContext.PackageFamilies.OrderBy(x => x.PackageFamilyCode).ToList(), nameof(PackageFamily.PackageFamilyCode), nameof(PackageFamily.PackageFamilyCode));
         ViewBag.FootprintVariants = new SelectList(_dbContext.FootprintVariants.OrderBy(x => x.FootprintName).ToList(), nameof(FootprintVariant.FootprintName), nameof(FootprintVariant.FootprintName));
     }
+
+    private bool CanMutateCompanyParts()
+        => User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer") || User.IsInRole("Purchasing");
 }

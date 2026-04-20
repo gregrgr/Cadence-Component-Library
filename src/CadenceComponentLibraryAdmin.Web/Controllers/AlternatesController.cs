@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CadenceComponentLibraryAdmin.Web.Controllers;
 
-[Authorize(Roles = "Admin,Librarian,EEReviewer,Purchasing")]
+[Authorize(Roles = "Admin,Librarian,EEReviewer,Viewer")]
 public sealed class AlternatesController : Controller
 {
     private readonly ApplicationDbContext _dbContext;
@@ -118,6 +118,11 @@ public sealed class AlternatesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PartAlternate model)
     {
+        if (!CanEditAlternates())
+        {
+            return Forbid();
+        }
+
         await _partAlternateService.PrepareForSaveAsync(model);
         var ruleResult = await _partAlternateService.ValidateAsync(model);
         if (!ModelState.IsValid || !ruleResult.Succeeded)
@@ -159,6 +164,11 @@ public sealed class AlternatesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(long id, PartAlternate model)
     {
+        if (!CanEditAlternates())
+        {
+            return Forbid();
+        }
+
         if (id != model.Id) return NotFound();
 
         await _partAlternateService.PrepareForSaveAsync(model);
@@ -242,6 +252,11 @@ public sealed class AlternatesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(long id)
     {
+        if (!CanEditAlternates())
+        {
+            return Forbid();
+        }
+
         var item = await _dbContext.PartAlternates
             .Where(x => !x.IsDeleted)
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -274,6 +289,9 @@ public sealed class AlternatesController : Controller
     }
 
     private bool CanApproveAlternate()
+        => User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer");
+
+    private bool CanEditAlternates()
         => User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer");
 
     private async Task<AlternateListItemViewModel> BuildAlternateListItemAsync(PartAlternate alternate)

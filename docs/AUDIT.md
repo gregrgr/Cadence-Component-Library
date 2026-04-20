@@ -24,9 +24,9 @@ This document captures the Milestone A hardening pass for buildability, smoke co
 
 ## Current migration posture
 
-- The application still supports startup without generated EF Core migrations by using the existing bootstrap fallback.
-- A formal initial EF Core migration is still recommended as the next infrastructure-hardening step.
-- The migration folder remains intentionally lightweight in this milestone so the audit/CI PR can focus on verifiable build, test, and runtime behavior without rewriting the data model.
+- The repository now has a formal EF Core baseline and follow-up migrations.
+- `InitialCreate` remains the authoritative first schema baseline.
+- `AddAdminAuditLogs` extends the baseline for admin-user and admin-role auditing without rewriting the existing architecture.
 
 ## Manual smoke validation
 
@@ -67,3 +67,34 @@ Expected development login:
   - `Manufacturer + ManufacturerPN` uniqueness is enforced by SQL Server
 - Remaining limitation:
   - non-development environments do not apply schema changes automatically unless `Database:ApplySchemaChangesOnStartup=true` is set intentionally.
+
+## Milestone B1 Result
+
+- Approval Queue is implemented for pending `CompanyPart`, `OnlineCandidate`, and `FootprintVariant` review items.
+- Alternates workflow is implemented with create, edit, approval, validation, and CompanyPart-detail integration.
+- CompanyPart approval and alternate validation rules are enforced in application services and covered by tests.
+- Remaining limitation:
+  - workflow notifications and multi-step reviewer escalation are not implemented yet.
+
+## Milestone B2 Result
+
+- User administration is implemented at `/Admin/Users`.
+- Role administration is implemented at `/Admin/Roles`.
+- Authorization hardening is completed for the main mutation and approval paths:
+  - Designer and Viewer cannot execute approval actions
+  - PackageFamily and FootprintVariant mutations remain limited to Admin and Librarian
+  - ManufacturerPart mutations remain limited to Admin, Librarian, and Purchasing
+  - LibraryRelease remains Admin-only
+- Menu visibility is now role-aware, but controller actions still enforce authorization server-side.
+- Admin auditing now uses `AdminAuditLogs` for:
+  - user creation
+  - user lock and unlock
+  - password reset
+  - role changes
+  - role creation, rename, and deletion
+- Production first-admin bootstrap is available only through explicit configuration and is disabled by default.
+
+Remaining limitations:
+
+- Identity user records still rely on ASP.NET Core Identity defaults and do not currently expose created/updated timestamps.
+- Bulk import/export, richer dashboard metrics, and deeper notification workflows remain out of scope for this milestone.

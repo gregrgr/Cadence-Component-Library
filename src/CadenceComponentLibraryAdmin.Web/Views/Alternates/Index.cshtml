@@ -1,11 +1,17 @@
 @model CadenceComponentLibraryAdmin.Web.Models.AlternatesIndexViewModel
+@{
+    var canManageAlternates = User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer");
+}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="h4 mb-1">Alternates</h1>
         <div class="text-muted">Manage approved and candidate substitute relations.</div>
     </div>
-    <a asp-action="Create" class="btn btn-primary">New Alternate</a>
+    @if (canManageAlternates)
+    {
+        <a asp-action="Create" class="btn btn-primary">New Alternate</a>
+    }
 </div>
 
 <div class="page-card card mb-3">
@@ -69,18 +75,21 @@
                     <td>@(item.Alternate.ApprovedAt.HasValue ? item.Alternate.ApprovedAt.Value.ToString("yyyy-MM-dd HH:mm") : "Pending")</td>
                     <td class="text-end">
                         <a asp-action="Details" asp-route-id="@item.Alternate.Id" class="btn btn-sm btn-outline-secondary">Details</a>
-                        <a asp-action="Edit" asp-route-id="@item.Alternate.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        @if (!item.Alternate.ApprovedAt.HasValue)
+                        @if (canManageAlternates)
                         {
-                            <form asp-action="Approve" asp-route-id="@item.Alternate.Id" method="post" class="d-inline" onsubmit="return confirm('Approve this alternate relation?');">
+                            <a asp-action="Edit" asp-route-id="@item.Alternate.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                            @if (!item.Alternate.ApprovedAt.HasValue)
+                            {
+                                <form asp-action="Approve" asp-route-id="@item.Alternate.Id" method="post" class="d-inline" onsubmit="return confirm('Approve this alternate relation?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                                </form>
+                            }
+                            <form asp-action="Delete" asp-route-id="@item.Alternate.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this alternate relation?');">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>
                         }
-                        <form asp-action="Delete" asp-route-id="@item.Alternate.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this alternate relation?');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
                     </td>
                 </tr>
             }
