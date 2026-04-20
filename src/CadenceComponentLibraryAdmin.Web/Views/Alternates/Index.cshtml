@@ -1,4 +1,4 @@
-@model CadenceComponentLibraryAdmin.Web.Models.PagedResult<CadenceComponentLibraryAdmin.Domain.Entities.PartAlternate>
+@model CadenceComponentLibraryAdmin.Web.Models.AlternatesIndexViewModel
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
@@ -11,13 +11,17 @@
 <div class="page-card card mb-3">
     <div class="card-body">
         <form method="get" class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Company Part Number</label>
-                <input name="companyPn" value="@ViewBag.CompanyPN" class="form-control" />
+            <div class="col-md-3">
+                <label class="form-label">Source Company Part Number</label>
+                <input name="sourceCompanyPN" value="@Model.SourceCompanyPN" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Target Company Part Number</label>
+                <input name="targetCompanyPN" value="@Model.TargetCompanyPN" class="form-control" />
             </div>
             <div class="col-md-4">
                 <label class="form-label">Alternate Level</label>
-                <select name="altLevel" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.AlternateLevel>()" class="form-select">
+                <select name="altLevel" asp-for="AltLevel" asp-items="Html.GetEnumSelectList<CadenceComponentLibraryAdmin.Domain.Enums.AlternateLevel>()" class="form-select">
                     <option value="">All</option>
                 </select>
             </div>
@@ -34,33 +38,49 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Source</th>
-                    <th>Target</th>
-                    <th>Level</th>
+                    <th>SourceCompanyPN</th>
+                    <th>Source Description</th>
+                    <th>TargetCompanyPN</th>
+                    <th>Target Description</th>
+                    <th>AltLevel</th>
                     <th>Same Footprint</th>
-                    <th>Approved</th>
+                    <th>Same Symbol</th>
+                    <th>Need EE Review</th>
+                    <th>Need Layout Review</th>
+                    <th>Approved By</th>
+                    <th>Approved At</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
-            @foreach (var item in Model.Items)
+            @foreach (var item in Model.Results.Items)
             {
                 <tr>
-                    <td class="fw-semibold">@item.SourceCompanyPN</td>
-                    <td>@item.TargetCompanyPN</td>
-                    <td>@item.AltLevel</td>
-                    <td>@(item.SameFootprintYN ? "Yes" : "No")</td>
-                    <td>@(item.ApprovedAt.HasValue ? item.ApprovedAt.Value.ToString("yyyy-MM-dd") : "Pending")</td>
+                    <td class="fw-semibold">@item.Alternate.SourceCompanyPN</td>
+                    <td>@(item.SourceDescription ?? "-")</td>
+                    <td class="fw-semibold">@item.Alternate.TargetCompanyPN</td>
+                    <td>@(item.TargetDescription ?? "-")</td>
+                    <td>@item.Alternate.AltLevel</td>
+                    <td>@(item.Alternate.SameFootprintYN ? "Yes" : "No")</td>
+                    <td>@(item.Alternate.SameSymbolYN ? "Yes" : "No")</td>
+                    <td>@(item.Alternate.NeedEEReviewYN ? "Yes" : "No")</td>
+                    <td>@(item.Alternate.NeedLayoutReviewYN ? "Yes" : "No")</td>
+                    <td>@(item.Alternate.ApprovedBy ?? "-")</td>
+                    <td>@(item.Alternate.ApprovedAt.HasValue ? item.Alternate.ApprovedAt.Value.ToString("yyyy-MM-dd HH:mm") : "Pending")</td>
                     <td class="text-end">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        @if (!item.ApprovedAt.HasValue)
+                        <a asp-action="Details" asp-route-id="@item.Alternate.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                        <a asp-action="Edit" asp-route-id="@item.Alternate.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        @if (!item.Alternate.ApprovedAt.HasValue)
                         {
-                            <form asp-action="Approve" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Approve this alternate relation?');">
+                            <form asp-action="Approve" asp-route-id="@item.Alternate.Id" method="post" class="d-inline" onsubmit="return confirm('Approve this alternate relation?');">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
                             </form>
                         }
+                        <form asp-action="Delete" asp-route-id="@item.Alternate.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this alternate relation?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
                     </td>
                 </tr>
             }
@@ -68,4 +88,4 @@
         </table>
     </div>
 </div>
-<partial name="~/Views/Shared/_Pagination.cshtml" model='new CadenceComponentLibraryAdmin.Web.Models.PagedResult<object> { Items = Array.Empty<object>(), Page = Model.Page, PageSize = Model.PageSize, TotalCount = Model.TotalCount }' />
+<partial name="~/Views/Shared/_Pagination.cshtml" model='new CadenceComponentLibraryAdmin.Web.Models.PagedResult<object> { Items = Array.Empty<object>(), Page = Model.Results.Page, PageSize = Model.Results.PageSize, TotalCount = Model.Results.TotalCount }' />

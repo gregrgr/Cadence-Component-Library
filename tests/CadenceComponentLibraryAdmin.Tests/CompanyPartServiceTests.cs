@@ -32,7 +32,7 @@ public sealed class CompanyPartServiceTests
         Assert.False(result.Succeeded);
         Assert.Contains(result.Errors, error => error.Contains("Datasheet URL", StringComparison.Ordinal));
         Assert.Contains(result.Errors, error => error.Contains("approved Manufacturer Part", StringComparison.Ordinal));
-        Assert.Contains(result.Errors, error => error.Contains("valid Symbol Family", StringComparison.Ordinal));
+        Assert.Contains(result.Errors, error => error.Contains("valid active Symbol Family", StringComparison.Ordinal));
         Assert.Contains(result.Errors, error => error.Contains("valid Package Family", StringComparison.Ordinal));
         Assert.Contains(result.Errors, error => error.Contains("valid Default Footprint", StringComparison.Ordinal));
     }

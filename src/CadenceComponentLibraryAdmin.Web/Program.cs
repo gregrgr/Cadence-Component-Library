@@ -6,6 +6,7 @@ using CadenceComponentLibraryAdmin.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,8 +25,18 @@ builder.Services
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
     .SetApplicationName("CadenceComponentLibraryAdmin");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+    var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
+    if (environment.IsDevelopment())
+    {
+        // Development auto-migration should stay convenient even when EF emits
+        // a runtime-only pending-model warning that tooling does not reproduce.
+        options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
+    }
+});
 builder.Services.AddScoped<IChangeLogService, ChangeLogService>();
 builder.Services.AddScoped<IPackageFamilyService, PackageFamilyService>();
 builder.Services.AddScoped<ICompanyPartService, CompanyPartService>();

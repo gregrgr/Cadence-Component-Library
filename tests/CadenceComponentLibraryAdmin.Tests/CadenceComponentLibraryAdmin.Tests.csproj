@@ -24,6 +24,7 @@
     <ProjectReference Include="..\\..\\src\\CadenceComponentLibraryAdmin.Application\\CadenceComponentLibraryAdmin.Application.csproj" />
     <ProjectReference Include="..\\..\\src\\CadenceComponentLibraryAdmin.Domain\\CadenceComponentLibraryAdmin.Domain.csproj" />
     <ProjectReference Include="..\\..\\src\\CadenceComponentLibraryAdmin.Infrastructure\\CadenceComponentLibraryAdmin.Infrastructure.csproj" />
+    <ProjectReference Include="..\\..\\src\\CadenceComponentLibraryAdmin.Web\\CadenceComponentLibraryAdmin.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

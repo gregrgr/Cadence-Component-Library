@@ -45,11 +45,11 @@ public sealed class CompanyPartService : ICompanyPartService
 
         var symbolFamilyExists = await _dbContext.SymbolFamilies
             .AsNoTracking()
-            .AnyAsync(x => x.SymbolFamilyCode == companyPart.SymbolFamilyCode, cancellationToken);
+            .AnyAsync(x => x.SymbolFamilyCode == companyPart.SymbolFamilyCode && x.IsActive, cancellationToken);
 
         if (!symbolFamilyExists)
         {
-            result.AddError("Approved parts must reference a valid Symbol Family.");
+            result.AddError("Approved parts must reference a valid active Symbol Family.");
         }
 
         var packageFamilyExists = await _dbContext.PackageFamilies
