@@ -1,0 +1,41 @@
+{
+  "sourceName": "EasyEDA Pro",
+  "externalDeviceUuid": "c6dc3f2d0e1e4f2b9c4cb8a74741a6b3",
+  "externalLibraryUuid": "c6c573267c6c4879bf6ce2bd11a3f34c",
+  "searchKeyword": "STM32F103C8T6",
+  "lcscId": "C8734",
+  "name": "STM32F103C8T6",
+  "description": "ARM Cortex-M3 MCU, 64KB Flash, 48-pin LQFP",
+  "classification": {
+    "level1": "MCU",
+    "level2": "ARM MCU"
+  },
+  "manufacturer": "STMicroelectronics",
+  "manufacturerPN": "STM32F103C8T6",
+  "supplier": "LCSC",
+  "supplierId": "C8734",
+  "symbolName": "STM32F103C8T6_SYM",
+  "symbolUuid": "7b2c52e90b82418b9dcbe8da78e4e1d6",
+  "symbolLibraryUuid": "2f9d6987faef45a2964e3655403d9e2b",
+  "symbolType": "SCHLIB",
+  "symbolRawJson": "{\"uuid\":\"7b2c52e90b82418b9dcbe8da78e4e1d6\",\"name\":\"STM32F103C8T6_SYM\"}",
+  "footprintName": "LQFP-48_7x7_P0.5mm",
+  "footprintUuid": "f28f07361a454b5f9d6c6ffaf178d0f7",
+  "footprintLibraryUuid": "f605f24f4a6f45f58690a6824ed833fe",
+  "footprintRawJson": "{\"uuid\":\"f28f07361a454b5f9d6c6ffaf178d0f7\",\"pads\":48}",
+  "imageUuids": [
+    "img-3a90234a",
+    "img-51b2df7c"
+  ],
+  "model3DName": "LQFP-48_7x7_P0.5mm_3D",
+  "model3DUuid": "f68ae5f3c4cf4310a1383f1eef3c5639",
+  "model3DLibraryUuid": "c59cd5a7bca54f7f8f36314dca598841",
+  "model3DRawJson": "{\"uuid\":\"f68ae5f3c4cf4310a1383f1eef3c5639\",\"name\":\"LQFP-48_7x7_P0.5mm_3D\",\"format\":\"step\"}",
+  "datasheetUrl": "https://www.st.com/resource/en/datasheet/stm32f103c8.pdf",
+  "searchItemRawJson": "{\"uuid\":\"c6dc3f2d0e1e4f2b9c4cb8a74741a6b3\",\"symbol\":{\"uuid\":\"7b2c52e90b82418b9dcbe8da78e4e1d6\"}}",
+  "deviceItemRawJson": "{\"uuid\":\"c6dc3f2d0e1e4f2b9c4cb8a74741a6b3\",\"association\":{\"footprint\":{\"uuid\":\"f28f07361a454b5f9d6c6ffaf178d0f7\"}}}",
+  "deviceAssociationRawJson": "{\"symbol\":{\"uuid\":\"7b2c52e90b82418b9dcbe8da78e4e1d6\"},\"footprint\":{\"uuid\":\"f28f07361a454b5f9d6c6ffaf178d0f7\"},\"model3D\":{\"uuid\":\"f68ae5f3c4cf4310a1383f1eef3c5639\"}}",
+  "devicePropertyRawJson": "{\"manufacturer\":\"STMicroelectronics\",\"name\":\"STM32F103C8T6\"}",
+  "otherPropertyRawJson": "{\"package\":\"LQFP-48\",\"core\":\"ARM Cortex-M3\"}",
+  "fullRawJson": "{\"searchItem\":{\"uuid\":\"c6dc3f2d0e1e4f2b9c4cb8a74741a6b3\"},\"deviceItem\":{\"uuid\":\"c6dc3f2d0e1e4f2b9c4cb8a74741a6b3\"},\"model3DItem\":{\"uuid\":\"f68ae5f3c4cf4310a1383f1eef3c5639\"}}"
+}

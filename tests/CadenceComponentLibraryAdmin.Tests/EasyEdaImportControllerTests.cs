@@ -72,6 +72,24 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task DuplicateLcscImport_IsDetected()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = CreateService(dbContext);
+
+        await service.UpsertEasyEdaComponentAsync(CreateRequest(), "tester");
+        var result = await service.UpsertEasyEdaComponentAsync(
+            CreateRequest() with
+            {
+                ExternalDeviceUuid = "dev-002",
+                Description = "duplicate lcsc"
+            },
+            "tester");
+
+        Assert.Contains(result.DuplicateWarnings, warning => warning.Contains("same LCSC ID", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task DuplicateManufacturerPart_WritesWarning()
     {
         await using var dbContext = CreateDbContext();
@@ -138,7 +156,8 @@ public sealed class EasyEdaImportControllerTests : IDisposable
         Assert.NotNull(asset.Sha256);
         Assert.True(asset.SizeBytes > 0);
         Assert.False(string.IsNullOrWhiteSpace(asset.StoragePath));
-        Assert.True(File.Exists(Path.Combine(Directory.GetCurrentDirectory(), asset.StoragePath!.Replace('/', Path.DirectorySeparatorChar))));
+        Assert.StartsWith($"{import.ImportId}/", asset.StoragePath, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(_storageRoot, asset.StoragePath!.Replace('/', Path.DirectorySeparatorChar))));
     }
 
     [Fact]
@@ -204,6 +223,38 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task AssetUpload_UsesConfiguredStorageRoot_AndSanitizesFileName()
+    {
+        await using var dbContext = CreateDbContext();
+        var service = CreateService(dbContext);
+        var import = await service.UpsertEasyEdaComponentAsync(CreateRequest(), "tester");
+        await using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4 });
+        var formFile = new FormFile(stream, 0, stream.Length, "file", "..\\..\\secret/unsafe?.step.exe")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/octet-stream"
+        };
+
+        var asset = await service.SaveAssetAsync(
+            import.ImportId,
+            new ExternalImportAssetUpload(
+                ExternalComponentAssetType.Step,
+                formFile.OpenReadStream(),
+                formFile.FileName,
+                formFile.FileName,
+                formFile.ContentType,
+                formFile.Length,
+                null,
+                null,
+                null),
+            "tester");
+
+        var resolvedPath = Path.GetFullPath(Path.Combine(_storageRoot, asset.StoragePath!.Replace('/', Path.DirectorySeparatorChar)));
+        Assert.StartsWith(Path.GetFullPath(_storageRoot), resolvedPath, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(".exe", Path.GetExtension(asset.FileName));
+    }
+
+    [Fact]
     public async Task CreateCandidate_CreatesOnlineCandidateWithoutApprovingCompanyPart()
     {
         await using var dbContext = CreateDbContext();
@@ -224,6 +275,16 @@ public sealed class EasyEdaImportControllerTests : IDisposable
     {
         var authorizeAttribute = Assert.Single(typeof(ExternalImportsController).GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true));
         Assert.IsType<AuthorizeAttribute>(authorizeAttribute);
+    }
+
+    [Fact]
+    public void CreateCandidate_Endpoint_RequiresAuthenticatedRole()
+    {
+        var method = typeof(EasyEdaImportController).GetMethod(nameof(EasyEdaImportController.CreateCandidate));
+        Assert.NotNull(method);
+        var authorizeAttribute = Assert.Single(method!.GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true));
+        var typedAttribute = Assert.IsType<AuthorizeAttribute>(authorizeAttribute);
+        Assert.Contains("Admin", typedAttribute.Roles ?? string.Empty, StringComparison.Ordinal);
     }
 
     public void Dispose()

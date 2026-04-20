@@ -166,6 +166,7 @@ Security:
 
 - ingest endpoints require `X-Import-Api-Key`
 - configure the shared key with `ExternalImports:EasyEdaApiKey`
+- `.env.example` contains a placeholder only; do not commit a real import key
 
 Storage:
 
@@ -190,6 +191,7 @@ Extension build:
 ```bash
 cd integrations/easyeda-pro-import-extension
 npm install
+npm run typecheck
 npm run build
 ```
 
@@ -197,6 +199,7 @@ Extension install/config details:
 
 - see `integrations/easyeda-pro-import-extension/README.md`
 - see `docs/EASYEDA_IMPORT.md`
+- sample payloads are under `docs/samples/easyeda/`
 
 ## Running locally
 
@@ -341,6 +344,8 @@ GitHub Actions CI runs:
 - `dotnet restore`
 - `dotnet build --no-restore --configuration Release`
 - `dotnet test --no-build --configuration Release`
+- `npm install` for `integrations/easyeda-pro-import-extension`
+- `npm run build` for `integrations/easyeda-pro-import-extension`
 
 CI also provides SQL Server so integration tests can verify:
 
@@ -375,6 +380,7 @@ Important indexes:
 - The baseline migration is formalized, but future schema changes still need deliberate migration discipline.
 - The application still relies on ASP.NET Core Identity UI defaults for interactive sign-in and password policies.
 - The EasyEDA Pro connector depends on BETA extension APIs and best-effort document discovery.
+- The EasyEDA extension build is CI-safe, but direct SDK calls still require the EasyEDA Pro editor runtime.
 - Automated vendor download, footprint generation, `.olb` generation, ERP / PLM sync, and advanced multi-step workflows are not implemented yet.
 
 ## Planned next steps

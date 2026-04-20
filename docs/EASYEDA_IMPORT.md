@@ -107,6 +107,13 @@ Rules:
 - Preserve the original payload fragment instead of guessing.
 - Store nested / extra properties in raw JSON even when a normalized field is also populated.
 
+Sample payloads live under:
+
+- `docs/samples/easyeda/component-basic.json`
+- `docs/samples/easyeda/component-with-symbol-footprint-3d.json`
+- `docs/samples/easyeda/component-with-datasheet-manual-step.json`
+- `docs/samples/easyeda/component-minimal-missing-fields.json`
+
 ## Asset handling
 
 Asset storage is file-based in B3.
@@ -147,12 +154,60 @@ Large binary payloads are not stored in SQL Server.
 - The API key comes from `ExternalImports:EasyEdaApiKey`.
 - `create-candidate` requires an authenticated application user with `Admin`, `Librarian`, or `EEReviewer`.
 - No public unauthenticated page can create approved library records.
+- The API key is not embedded in the extension source, sample payloads, or repository defaults.
+
+## API smoke examples
+
+Import a component payload:
+
+```bash
+curl -X POST "http://localhost:8080/api/import/easyeda/component" \
+  -H "Content-Type: application/json" \
+  -H "X-Import-Api-Key: <your-key>" \
+  --data @docs/samples/easyeda/component-with-symbol-footprint-3d.json
+```
+
+Upload a thumbnail or footprint render image:
+
+```bash
+curl -X POST "http://localhost:8080/api/import/easyeda/component/123/asset" \
+  -H "X-Import-Api-Key: <your-key>" \
+  -F "assetType=FootprintRenderImage" \
+  -F "file=@./preview.png" \
+  -F "externalUuid=img-preview-001" \
+  -F "rawMetadataJson={\"source\":\"EasyEDA render\"}"
+```
+
+Upload a STEP asset:
+
+```bash
+curl -X POST "http://localhost:8080/api/import/easyeda/component/123/asset" \
+  -H "X-Import-Api-Key: <your-key>" \
+  -F "assetType=Step" \
+  -F "file=@./part.step" \
+  -F "rawMetadataJson={\"source\":\"manual-export\"}"
+```
+
+Create an `OnlineCandidate` from a staged import:
+
+```bash
+curl -X POST "http://localhost:8080/api/import/easyeda/component/123/create-candidate" \
+  -b "<authenticated-app-cookie>" \
+  -H "RequestVerificationToken: <if-your-client-sends-one>"
+```
+
+The `create-candidate` endpoint is intentionally separate from the import ingest flow:
+
+- import APIs are API-key protected
+- candidate creation requires an authenticated app user
+- neither flow creates an approved `CompanyPart`
 
 ## Known limitations
 
 - EasyEDA library APIs used here are documented as BETA and may change.
 - `LIB_Device.getByLcscIds` is documented as unavailable in private deployments.
 - `LIB_Footprint.getRenderImage` could not be confirmed through the public reference index during implementation; the extension only uses it when the runtime exposes it.
+- The extension build is CI-safe because type-checking and sanity checks only execute pure helper logic; any direct EasyEDA editor APIs remain runtime-only inside EasyEDA Pro.
 - STEP download URLs or binary STEP files are not guaranteed by the SDK; B3 stores URLs, metadata, or uploaded files only when they are actually obtainable.
 - Imported footprints are not converted into Allegro `PSM` / `DRA`.
 - Imported components never become approved Cadence parts automatically.

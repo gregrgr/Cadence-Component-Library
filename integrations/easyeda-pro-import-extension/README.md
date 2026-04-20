@@ -18,6 +18,7 @@ Commands:
 
 ```bash
 npm install
+npm run typecheck
 npm run build
 ```
 
@@ -50,6 +51,22 @@ Settings:
   - optional
 
 The extension stores these settings locally in browser storage for the EasyEDA Pro runtime.
+
+## CI-safe validation
+
+This project is designed so CI can validate the extension bundle without needing the EasyEDA Pro editor runtime:
+
+- `npm run typecheck`
+  - checks TypeScript shape and imports
+- `npm run sanity-check`
+  - runs pure helper assertions for document-link extraction and payload normalization
+- `npm run build`
+  - runs typecheck, sanity-check, bundle, and package generation
+
+Runtime-only behavior:
+
+- direct `eda.*` API calls still require the EasyEDA Pro editor environment
+- CI does not attempt to execute EasyEDA editor APIs outside EasyEDA Pro
 
 ## Import modes
 

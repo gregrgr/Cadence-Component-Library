@@ -144,22 +144,28 @@ public sealed class ExternalImportService : IExternalImportService
             var importFolder = Path.Combine(storageRoot, import.Id.ToString());
             Directory.CreateDirectory(importFolder);
 
-            var extension = Path.GetExtension(request.FileName);
+            var extension = SanitizeExtension(request.FileName);
             var safeName = $"{request.AssetType.ToString().ToLowerInvariant()}-{Guid.NewGuid():N}{extension}";
             var fullPath = Path.Combine(importFolder, safeName);
+            var importFolderFullPath = Path.GetFullPath(importFolder);
+            var fullPathResolved = Path.GetFullPath(fullPath);
+            if (!fullPathResolved.StartsWith(importFolderFullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Resolved asset path escaped the configured storage root.");
+            }
 
-            await using (var destination = File.Create(fullPath))
+            await using (var destination = File.Create(fullPathResolved))
             {
                 await request.Content.CopyToAsync(destination, cancellationToken);
             }
 
-            await using var hashingStream = File.OpenRead(fullPath);
+            await using var hashingStream = File.OpenRead(fullPathResolved);
             var hash = await SHA256.HashDataAsync(hashingStream, cancellationToken);
 
             asset.FileName = safeName;
             asset.OriginalFileName = request.OriginalFileName ?? request.FileName;
             asset.ContentType = string.IsNullOrWhiteSpace(request.ContentType) ? "application/octet-stream" : request.ContentType;
-            asset.StoragePath = Path.GetRelativePath(Directory.GetCurrentDirectory(), fullPath).Replace('\\', '/');
+            asset.StoragePath = Path.GetRelativePath(storageRoot, fullPathResolved).Replace('\\', '/');
             asset.Sha256 = Convert.ToHexString(hash).ToLowerInvariant();
             asset.SizeBytes = request.SizeBytes;
         }
@@ -361,9 +367,32 @@ public sealed class ExternalImportService : IExternalImportService
             ? "App_Data/ExternalImports"
             : _options.StorageRoot!;
 
-        return Path.IsPathRooted(configuredRoot)
+        var resolved = Path.IsPathRooted(configuredRoot)
             ? configuredRoot
             : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configuredRoot));
+        Directory.CreateDirectory(resolved);
+        return resolved;
+    }
+
+    private static string SanitizeExtension(string? fileName)
+    {
+        var extension = Path.GetExtension(fileName ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            return ".bin";
+        }
+
+        var sanitized = new string(extension
+            .Where(ch => char.IsLetterOrDigit(ch) || ch == '.')
+            .Take(16)
+            .ToArray());
+
+        if (string.IsNullOrWhiteSpace(sanitized) || sanitized == ".")
+        {
+            return ".bin";
+        }
+
+        return sanitized.StartsWith(".", StringComparison.Ordinal) ? sanitized : $".{sanitized}";
     }
 
     private static string? Normalize(string? value)

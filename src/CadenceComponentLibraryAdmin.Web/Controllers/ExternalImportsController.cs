@@ -236,11 +236,10 @@ public sealed class ExternalImportsController : Controller
         var basePath = Path.IsPathRooted(_options.StorageRoot ?? string.Empty)
             ? _options.StorageRoot!
             : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), _options.StorageRoot ?? "App_Data/ExternalImports"));
-
-        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), asset.StoragePath.Replace('/', Path.DirectorySeparatorChar));
-        if (!System.IO.File.Exists(fullPath) && !string.IsNullOrWhiteSpace(basePath))
+        var fullPath = Path.GetFullPath(Path.Combine(basePath, asset.StoragePath.Replace('/', Path.DirectorySeparatorChar)));
+        if (!fullPath.StartsWith(Path.GetFullPath(basePath), StringComparison.OrdinalIgnoreCase))
         {
-            fullPath = Path.Combine(basePath, Path.GetFileName(asset.StoragePath));
+            return BadRequest();
         }
 
         if (!System.IO.File.Exists(fullPath))
