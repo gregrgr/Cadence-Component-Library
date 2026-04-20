@@ -82,10 +82,15 @@ CadenceComponentLibraryAdmin/
 - `Designer`
 - `Viewer`
 
-默认管理员账号：
+开发环境默认管理员账号：
 
 - Email: `admin@local.test`
 - Password: `Admin@123456`
+
+说明：
+
+- 仅当 `ASPNETCORE_ENVIRONMENT=Development` 时才会自动播种上述默认管理员。
+- 非开发环境仍会初始化角色，但不会自动创建带已知默认密码的管理员账号。
 
 ## 本地运行前提
 
@@ -111,6 +116,7 @@ docker compose up --build
 
 - Web: [http://localhost:8080](http://localhost:8080)
 - SQL Server: `localhost:14333`
+- 默认登录仅适用于 Development 环境下的首次本地或 Docker 验证。
 
 ### 方式 2：使用本机 .NET SDK
 
@@ -124,6 +130,9 @@ dotnet run --project src/CadenceComponentLibraryAdmin.Web
 ```
 
 ## EF Core Migration 命令
+
+当前应用保留了“无 Migration 时的启动兜底”，用于开发期快速拉起数据库并安装 `SQL View`。
+但为了更稳定的环境一致性，后续仍建议补正式的 `InitialCreate` migration。
 
 创建迁移：
 

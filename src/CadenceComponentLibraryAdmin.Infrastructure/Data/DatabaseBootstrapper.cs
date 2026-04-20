@@ -66,7 +66,7 @@ public static class DatabaseBootstrapper
         }
     }
 
-    private static IReadOnlyList<string> GetViewStatements() =>
+    internal static IReadOnlyList<string> GetViewStatements() =>
     [
         """
         CREATE OR ALTER VIEW dbo.vw_CIS_Release_Parts AS
