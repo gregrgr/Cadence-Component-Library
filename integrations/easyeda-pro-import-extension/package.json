@@ -2,18 +2,22 @@
   "name": "easyeda-pro-import-extension",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "EasyEDA Pro extension that exports full-fidelity component staging data to CadenceComponentLibraryAdmin.",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=20.17.0"
   },
   "scripts": {
-    "compile": "rimraf ./dist/ && ts-node ./config/esbuild.prod.ts",
-    "build": "npm run compile && ts-node ./build/packaged.ts"
+    "typecheck": "tsc --noEmit",
+    "compile": "node --loader ts-node/esm ./config/esbuild.prod.ts",
+    "sanity-check": "node --loader ts-node/esm ./scripts/sanity-check.ts",
+    "build": "npm run typecheck && npm run sanity-check && npm run compile && node --loader ts-node/esm ./build/packaged.ts"
   },
   "devDependencies": {
     "@jlceda/pro-api-types": "^0.2.30",
     "@types/fs-extra": "^11.0.4",
+    "@types/node": "^24.5.2",
     "esbuild": "^0.24.2",
     "fs-extra": "^11.3.0",
     "ignore": "^7.0.5",

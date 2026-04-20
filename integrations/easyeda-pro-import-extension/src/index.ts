@@ -1,22 +1,19 @@
 import * as extensionConfig from '../extension.json';
+import {
+  extractDocumentLinks,
+  normalizeEasyEdaPayload,
+  type DeviceItem,
+  type Model3DItem,
+  type SearchItem,
+  stringifyRaw
+} from './import-helpers';
 
 declare const eda: any;
-
-type SearchItem = Record<string, any>;
-type DeviceItem = Record<string, any>;
-type Model3DItem = Record<string, any>;
 
 interface ConnectorSettings {
   backendBaseUrl: string;
   importApiKey: string;
   defaultLibraryUuid?: string;
-}
-
-interface DocumentLinks {
-  datasheetUrl?: string;
-  manualUrl?: string;
-  stepUrl?: string;
-  stepMetadata?: Record<string, any>;
 }
 
 const SETTINGS_KEY = 'cadence-cis-admin.easyeda-import.settings';
@@ -117,8 +114,6 @@ async function collectPayload(searchItem: SearchItem, settings: ConnectorSetting
 
   const deviceItem = searchItem.uuid ? await deviceApi.get(searchItem.uuid, searchItem.libraryUuid || settings.defaultLibraryUuid || undefined) : undefined;
   const association = deviceItem?.association ?? searchItem?.association ?? null;
-  const property = deviceItem?.property ?? null;
-
   const footprintUuid = searchItem.footprint?.uuid || searchItem.footprintUuid || association?.footprint?.uuid;
   const footprintLibraryUuid = searchItem.footprint?.libraryUuid || association?.footprint?.libraryUuid || searchItem.libraryUuid || settings.defaultLibraryUuid;
   const footprintItem = footprintUuid && footprintApi.get ? await footprintApi.get(footprintUuid, footprintLibraryUuid) : undefined;
@@ -132,51 +127,17 @@ async function collectPayload(searchItem: SearchItem, settings: ConnectorSetting
     ? await tryGetRenderImage(footprintApi, footprintUuid, footprintLibraryUuid)
     : undefined;
 
-  const imageUuids = dedupeStrings([
-    searchItem.imageUuid,
-    ...(asArray(searchItem.imageUuids))
-  ]);
+  const normalized = normalizeEasyEdaPayload({
+    searchItem,
+    deviceItem,
+    footprintItem,
+    model3DItem,
+    documentLinks,
+    defaultLibraryUuid: settings.defaultLibraryUuid
+  });
 
   return {
-    sourceName: 'EasyEDA Pro',
-    externalDeviceUuid: searchItem.uuid,
-    externalLibraryUuid: searchItem.libraryUuid || settings.defaultLibraryUuid || undefined,
-    searchKeyword: searchItem.name || searchItem.description || '',
-    lcscId: findLcscId(searchItem, deviceItem),
-    name: searchItem.name || deviceItem?.name || undefined,
-    description: searchItem.description || deviceItem?.description || undefined,
-    classification: searchItem.classification || deviceItem?.classification || undefined,
-    manufacturer: searchItem.manufacturer || property?.manufacturer || undefined,
-    manufacturerPN: property?.name || deviceItem?.manufacturerPN || undefined,
-    supplier: searchItem.supplier || property?.supplier || undefined,
-    supplierId: searchItem.supplierId || property?.supplierId || undefined,
-    symbolName: searchItem.symbol?.name || searchItem.symbolName || association?.symbol?.name || undefined,
-    symbolUuid: searchItem.symbol?.uuid || searchItem.symbolUuid || association?.symbol?.uuid || undefined,
-    symbolLibraryUuid: searchItem.symbol?.libraryUuid || association?.symbol?.libraryUuid || undefined,
-    symbolType: deviceItem?.symbolType || association?.symbolType || undefined,
-    symbolRawJson: stringifyRaw(searchItem.symbol || association?.symbol || null),
-    footprintName: searchItem.footprint?.name || searchItem.footprintName || association?.footprint?.name || footprintItem?.name || undefined,
-    footprintUuid,
-    footprintLibraryUuid,
-    footprintRawJson: stringifyRaw(footprintItem || association?.footprint || null),
-    imageUuids,
-    model3DName: searchItem.model3D?.name || searchItem.model3DName || association?.model3D?.name || model3DItem?.name || undefined,
-    model3DUuid,
-    model3DLibraryUuid,
-    model3DRawJson: stringifyRaw(model3DItem || association?.model3D || null),
-    datasheetUrl: documentLinks.datasheetUrl,
-    manualUrl: documentLinks.manualUrl,
-    stepUrl: documentLinks.stepUrl,
-    jlcInventory: searchItem.jlcInventory,
-    jlcPrice: searchItem.jlcPrice,
-    lcscInventory: searchItem.lcscInventory,
-    lcscPrice: searchItem.lcscPrice,
-    searchItemRawJson: stringifyRaw(searchItem),
-    deviceItemRawJson: stringifyRaw(deviceItem || null),
-    deviceAssociationRawJson: stringifyRaw(association),
-    devicePropertyRawJson: stringifyRaw(property),
-    otherPropertyRawJson: stringifyRaw(property?.otherProperty || searchItem.otherProperty || null),
-    fullRawJson: stringifyRaw({ searchItem, deviceItem, footprintItem, model3DItem }),
+    ...normalized,
     footprintRenderImage,
     footprintRenderMetadata: footprintRenderImage ? { footprintUuid, footprintLibraryUuid } : undefined,
     documentLinkMetadata: {
@@ -286,136 +247,6 @@ async function tryGetRenderImage(footprintApi: any, footprintUuid: string, libra
   }
 }
 
-function findLcscId(searchItem: SearchItem, deviceItem: DeviceItem | undefined): string | undefined {
-  const directValue = searchItem.lcscId || deviceItem?.lcscId;
-  if (typeof directValue === 'string' && directValue.trim()) {
-    return directValue.trim();
-  }
-
-  const matches = findValuesByLikelyKeys({
-    searchItem,
-    deviceItem,
-    property: deviceItem?.property,
-    association: deviceItem?.association
-  }, ['lcsc', 'cnumber', 'c-number', 'supplierid']);
-
-  return matches.find(value => /^c\d+$/i.test(value));
-}
-
-export function extractDocumentLinks(searchItem?: SearchItem, deviceItem?: DeviceItem, model3DItem?: Model3DItem): DocumentLinks {
-  const root = {
-    searchItem,
-    deviceItem,
-    model3DItem,
-    searchOtherProperty: searchItem?.otherProperty,
-    deviceOtherProperty: deviceItem?.property?.otherProperty,
-    deviceProperty: deviceItem?.property,
-    deviceAssociation: deviceItem?.association
-  };
-
-  const urlEntries = findUrlEntries(root);
-  const result: DocumentLinks = {};
-
-  for (const entry of urlEntries) {
-    const key = entry.key.toLowerCase();
-    if (!result.datasheetUrl && matchesAny(key, ['datasheet', 'datasheeturl', 'datasheet_url', 'pdf', 'document', 'spec', 'specification'])) {
-      result.datasheetUrl = entry.value;
-      continue;
-    }
-
-    if (!result.manualUrl && matchesAny(key, ['manual', 'manualurl', 'manual_url'])) {
-      result.manualUrl = entry.value;
-      continue;
-    }
-
-    if (!result.stepUrl && matchesAny(key, ['step', 'stepurl', 'step_url', 'stp', '3d', 'model3d', 'model3durl', 'model'])) {
-      result.stepUrl = entry.value;
-      result.stepMetadata = entry.parent;
-    }
-  }
-
-  return result;
-}
-
-function findUrlEntries(root: unknown): Array<{ key: string; value: string; parent: Record<string, any> }> {
-  const matches: Array<{ key: string; value: string; parent: Record<string, any> }> = [];
-  const seen = new WeakSet<object>();
-
-  function visit(value: unknown): void {
-    if (!value || typeof value !== 'object') {
-      return;
-    }
-
-    if (seen.has(value as object)) {
-      return;
-    }
-
-    seen.add(value as object);
-
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        visit(item);
-      }
-      return;
-    }
-
-    for (const [key, nested] of Object.entries(value as Record<string, any>)) {
-      if (typeof nested === 'string' && looksLikeUrl(nested)) {
-        matches.push({ key, value: nested, parent: value as Record<string, any> });
-      } else {
-        visit(nested);
-      }
-    }
-  }
-
-  visit(root);
-  return matches;
-}
-
-function findValuesByLikelyKeys(root: unknown, candidates: Array<string>): Array<string> {
-  const found: Array<string> = [];
-  const seen = new WeakSet<object>();
-
-  function visit(value: unknown): void {
-    if (!value || typeof value !== 'object') {
-      return;
-    }
-
-    if (seen.has(value as object)) {
-      return;
-    }
-
-    seen.add(value as object);
-
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        visit(item);
-      }
-      return;
-    }
-
-    for (const [key, nested] of Object.entries(value as Record<string, any>)) {
-      const normalizedKey = key.toLowerCase();
-      if (typeof nested === 'string' && candidates.some(candidate => normalizedKey.includes(candidate.toLowerCase()))) {
-        found.push(nested);
-      } else {
-        visit(nested);
-      }
-    }
-  }
-
-  visit(root);
-  return found;
-}
-
-function looksLikeUrl(value: string): boolean {
-  return /^https?:\/\//i.test(value.trim());
-}
-
-function matchesAny(value: string, candidates: Array<string>): boolean {
-  return candidates.some(candidate => value.includes(candidate.toLowerCase()));
-}
-
 function stripTransportOnlyFields(payload: Record<string, any>): Record<string, any> {
   const { footprintRenderImage, footprintRenderMetadata, documentLinkMetadata, ...rest } = payload;
   return rest;
@@ -467,16 +298,4 @@ function ensureSettings(): ConnectorSettings {
 
 function trimSlash(value: string): string {
   return value.replace(/\/+$/, '');
-}
-
-function stringifyRaw(value: unknown): string {
-  return JSON.stringify(value ?? null, null, 2);
-}
-
-function dedupeStrings(values: Array<unknown>): Array<string> {
-  return [...new Set(values.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).map(value => value.trim()))];
-}
-
-function asArray(value: unknown): Array<unknown> {
-  return Array.isArray(value) ? value : [];
 }

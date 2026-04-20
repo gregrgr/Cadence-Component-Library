@@ -1,113 +1,113 @@
 {
-  "name": "easyeda-pro-import-extension",
-  "uuid": "",
-  "displayName": "EasyEDA Pro Import Connector",
-  "description": "Export EasyEDA Pro component staging data into CadenceComponentLibraryAdmin.",
-  "version": "0.1.0",
-  "publisher": "gregrgr",
-  "engines": {
-    "eda": "^3.0.0"
-  },
-  "license": "Apache-2.0",
-  "categories": "Other",
-  "keywords": [
-    "EasyEDA",
-    "Cadence",
-    "Import",
-    "LCSC"
-  ],
-  "entry": "./dist/index",
-  "activationEvents": {},
-  "dependentExtensions": {},
-  "headerMenus": {
-    "home": [
-      {
-        "id": "CIS Import",
-        "title": "CIS Import",
-        "menuItems": [
-          {
-            "id": "ExportByKeyword",
-            "title": "Export Component to CIS Admin...",
-            "registerFn": "exportComponentToCisAdmin"
-          },
-          {
-            "id": "ExportByLcsc",
-            "title": "Export by LCSC C-number...",
-            "registerFn": "exportComponentByLcsc"
-          },
-          {
-            "id": "CurrentSelection",
-            "title": "Export Current Selection (best effort)",
-            "registerFn": "exportCurrentSelection"
-          },
-          {
-            "id": "Configure",
-            "title": "Configure Connector...",
-            "registerFn": "configureConnector"
-          },
-          {
-            "id": "About",
-            "title": "About",
-            "registerFn": "about"
-          }
-        ]
-      }
-    ],
-    "sch": [
-      {
-        "id": "CIS Import",
-        "title": "CIS Import",
-        "menuItems": [
-          {
-            "id": "ExportByKeyword",
-            "title": "Export Component to CIS Admin...",
-            "registerFn": "exportComponentToCisAdmin"
-          },
-          {
-            "id": "ExportByLcsc",
-            "title": "Export by LCSC C-number...",
-            "registerFn": "exportComponentByLcsc"
-          },
-          {
-            "id": "CurrentSelection",
-            "title": "Export Current Selection (best effort)",
-            "registerFn": "exportCurrentSelection"
-          },
-          {
-            "id": "Configure",
-            "title": "Configure Connector...",
-            "registerFn": "configureConnector"
-          }
-        ]
-      }
-    ],
-    "pcb": [
-      {
-        "id": "CIS Import",
-        "title": "CIS Import",
-        "menuItems": [
-          {
-            "id": "ExportByKeyword",
-            "title": "Export Component to CIS Admin...",
-            "registerFn": "exportComponentToCisAdmin"
-          },
-          {
-            "id": "ExportByLcsc",
-            "title": "Export by LCSC C-number...",
-            "registerFn": "exportComponentByLcsc"
-          },
-          {
-            "id": "CurrentSelection",
-            "title": "Export Current Selection (best effort)",
-            "registerFn": "exportCurrentSelection"
-          },
-          {
-            "id": "Configure",
-            "title": "Configure Connector...",
-            "registerFn": "configureConnector"
-          }
-        ]
-      }
-    ]
-  }
+	"name": "easyeda-pro-import-extension",
+	"uuid": "5ca3726a6008401a9f4a92d7880b4a79",
+	"displayName": "EasyEDA Pro Import Connector",
+	"description": "Export EasyEDA Pro component staging data into CadenceComponentLibraryAdmin.",
+	"version": "0.1.0",
+	"publisher": "gregrgr",
+	"engines": {
+		"eda": "^3.0.0"
+	},
+	"license": "Apache-2.0",
+	"categories": "Other",
+	"keywords": [
+		"EasyEDA",
+		"Cadence",
+		"Import",
+		"LCSC"
+	],
+	"entry": "./dist/index",
+	"activationEvents": {},
+	"dependentExtensions": {},
+	"headerMenus": {
+		"home": [
+			{
+				"id": "CIS Import",
+				"title": "CIS Import",
+				"menuItems": [
+					{
+						"id": "ExportByKeyword",
+						"title": "Export Component to CIS Admin...",
+						"registerFn": "exportComponentToCisAdmin"
+					},
+					{
+						"id": "ExportByLcsc",
+						"title": "Export by LCSC C-number...",
+						"registerFn": "exportComponentByLcsc"
+					},
+					{
+						"id": "CurrentSelection",
+						"title": "Export Current Selection (best effort)",
+						"registerFn": "exportCurrentSelection"
+					},
+					{
+						"id": "Configure",
+						"title": "Configure Connector...",
+						"registerFn": "configureConnector"
+					},
+					{
+						"id": "About",
+						"title": "About",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"sch": [
+			{
+				"id": "CIS Import",
+				"title": "CIS Import",
+				"menuItems": [
+					{
+						"id": "ExportByKeyword",
+						"title": "Export Component to CIS Admin...",
+						"registerFn": "exportComponentToCisAdmin"
+					},
+					{
+						"id": "ExportByLcsc",
+						"title": "Export by LCSC C-number...",
+						"registerFn": "exportComponentByLcsc"
+					},
+					{
+						"id": "CurrentSelection",
+						"title": "Export Current Selection (best effort)",
+						"registerFn": "exportCurrentSelection"
+					},
+					{
+						"id": "Configure",
+						"title": "Configure Connector...",
+						"registerFn": "configureConnector"
+					}
+				]
+			}
+		],
+		"pcb": [
+			{
+				"id": "CIS Import",
+				"title": "CIS Import",
+				"menuItems": [
+					{
+						"id": "ExportByKeyword",
+						"title": "Export Component to CIS Admin...",
+						"registerFn": "exportComponentToCisAdmin"
+					},
+					{
+						"id": "ExportByLcsc",
+						"title": "Export by LCSC C-number...",
+						"registerFn": "exportComponentByLcsc"
+					},
+					{
+						"id": "CurrentSelection",
+						"title": "Export Current Selection (best effort)",
+						"registerFn": "exportCurrentSelection"
+					},
+					{
+						"id": "Configure",
+						"title": "Configure Connector...",
+						"registerFn": "configureConnector"
+					}
+				]
+			}
+		]
+	}
 }

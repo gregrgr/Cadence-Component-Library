@@ -1,6 +1,16 @@
 namespace CadenceComponentLibraryAdmin.Web.Models;
 
-public sealed class PagedResult<T>
+public interface IPagedResult
+{
+    int Page { get; }
+    int PageSize { get; }
+    int TotalCount { get; }
+    int TotalPages { get; }
+    bool HasPreviousPage { get; }
+    bool HasNextPage { get; }
+}
+
+public sealed class PagedResult<T> : IPagedResult
 {
     public IReadOnlyList<T> Items { get; init; } = [];
     public int Page { get; init; }

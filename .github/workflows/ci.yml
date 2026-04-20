@@ -48,3 +48,18 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --configuration Release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.17.0
+          cache: npm
+          cache-dependency-path: integrations/easyeda-pro-import-extension/package-lock.json
+
+      - name: Install EasyEDA extension dependencies
+        working-directory: integrations/easyeda-pro-import-extension
+        run: npm install
+
+      - name: Build EasyEDA extension
+        working-directory: integrations/easyeda-pro-import-extension
+        run: npm run build

@@ -112,6 +112,10 @@ Remaining limitations:
 - Asset storage is file-based rather than SQL-blob based.
 - The repository now includes an EasyEDA Pro extension project under `integrations/easyeda-pro-import-extension`.
 - The import architecture and SDK capability scan are documented in `docs/EASYEDA_IMPORT.md`.
+- .NET build and test validation pass on the hardened B3 branch.
+- The EasyEDA extension now runs `typecheck`, sanity checks, and `build`, and CI validates that build path.
+- Sample payloads are provided under `docs/samples/easyeda`.
+- Asset upload validation covers configured storage-root use, SHA256 generation, and filename/path hardening.
 
 Remaining limitations:
 

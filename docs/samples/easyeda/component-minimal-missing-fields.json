@@ -1,0 +1,17 @@
+{
+  "sourceName": "EasyEDA Pro",
+  "externalLibraryUuid": "9af4f8c5f77c4e72b67550564a0bfa21",
+  "searchKeyword": "mystery component",
+  "name": "Unknown Module",
+  "description": "Example minimal payload with missing manufacturer / symbol / footprint",
+  "classification": {
+    "level1": "Unclassified"
+  },
+  "supplier": "Unknown",
+  "searchItemRawJson": "{\"name\":\"Unknown Module\",\"otherProperty\":{\"mystery\":\"keep this raw\"}}",
+  "deviceItemRawJson": "{\"property\":{\"otherProperty\":{\"document\":\"https://example.test/spec.pdf\"}}}",
+  "deviceAssociationRawJson": "{\"symbol\":null,\"footprint\":null,\"model3D\":null}",
+  "devicePropertyRawJson": "{\"otherProperty\":{\"document\":\"https://example.test/spec.pdf\"}}",
+  "otherPropertyRawJson": "{\"mystery\":\"keep this raw\",\"document\":\"https://example.test/spec.pdf\"}",
+  "fullRawJson": "{\"searchItem\":{\"name\":\"Unknown Module\"},\"deviceItem\":{\"property\":{\"otherProperty\":{\"document\":\"https://example.test/spec.pdf\"}}}}"
+}

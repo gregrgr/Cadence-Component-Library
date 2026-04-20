@@ -1,0 +1,25 @@
+{
+  "sourceName": "EasyEDA Pro",
+  "externalDeviceUuid": "3c0b5aa53a594fb2b8f80af9b32d7c1e",
+  "externalLibraryUuid": "5c95f770b6b744de9f4c7740f8689ab3",
+  "searchKeyword": "LM358",
+  "lcscId": "C7954",
+  "name": "LM358DR",
+  "description": "Dual operational amplifier",
+  "classification": {
+    "level1": "Integrated Circuits (ICs)",
+    "level2": "Linear",
+    "level3": "Operational Amplifiers"
+  },
+  "manufacturer": "Texas Instruments",
+  "manufacturerPN": "LM358DR",
+  "supplier": "LCSC",
+  "supplierId": "C7954",
+  "datasheetUrl": "https://www.ti.com/lit/ds/symlink/lm358.pdf",
+  "searchItemRawJson": "{\"uuid\":\"3c0b5aa53a594fb2b8f80af9b32d7c1e\",\"name\":\"LM358DR\"}",
+  "deviceItemRawJson": "{\"uuid\":\"3c0b5aa53a594fb2b8f80af9b32d7c1e\",\"property\":{\"manufacturer\":\"Texas Instruments\"}}",
+  "deviceAssociationRawJson": "{\"symbol\":null,\"footprint\":null}",
+  "devicePropertyRawJson": "{\"manufacturer\":\"Texas Instruments\",\"name\":\"LM358DR\"}",
+  "otherPropertyRawJson": "{\"datasheet\":\"https://www.ti.com/lit/ds/symlink/lm358.pdf\"}",
+  "fullRawJson": "{\"searchItem\":{\"uuid\":\"3c0b5aa53a594fb2b8f80af9b32d7c1e\"},\"deviceItem\":{\"uuid\":\"3c0b5aa53a594fb2b8f80af9b32d7c1e\"}}"
+}
