@@ -23,6 +23,7 @@ The repository currently includes:
   - `Approval Queue`
   - `Alternates`
   - `Users / Roles` administration
+  - `External Imports`
   - `Change Logs`
   - `Quality Reports`
   - `Library Releases`
@@ -33,6 +34,7 @@ The repository currently includes:
   - alternate-level checks
   - approval queue validation and status transitions
 - Identity, role seeding, and admin bootstrap support
+- EasyEDA Pro staging import connector
 - Docker Compose runtime
 - GitHub Actions CI
 - Formal EF Core migration baseline (`InitialCreate`)
@@ -141,6 +143,60 @@ Protection rules:
 - the current signed-in admin cannot lock themselves
 - at least one active `Admin` user must remain
 - user and role admin actions are written to `AdminAuditLogs`
+
+## EasyEDA Pro import connector
+
+Milestone B3 adds a staging-only EasyEDA Pro import pipeline.
+
+Key rules:
+
+- the EasyEDA Pro SDK runs only inside the EasyEDA Pro extension
+- the `.NET` backend exposes import APIs and does not call `easyeda/pro-api-sdk` directly
+- imports land only in staging tables and can be reviewed in `/ExternalImports`
+- imported records do not become approved `CompanyParts` automatically
+- imported footprints are not converted automatically into Allegro `PSM` / `DRA`
+
+Backend endpoints:
+
+- `POST /api/import/easyeda/component`
+- `POST /api/import/easyeda/component/{id}/asset`
+- `POST /api/import/easyeda/component/{id}/create-candidate`
+
+Security:
+
+- ingest endpoints require `X-Import-Api-Key`
+- configure the shared key with `ExternalImports:EasyEdaApiKey`
+
+Storage:
+
+- local default asset storage root: `App_Data/ExternalImports`
+- Docker override: `/app-data/ExternalImports`
+
+Review UI:
+
+- `/ExternalImports`
+  - list staged imports
+  - inspect raw JSON snapshots
+  - inspect linked thumbnail / render / document / STEP assets
+  - create `OnlineCandidate` records explicitly
+  - reject staged imports
+
+Extension project:
+
+- `integrations/easyeda-pro-import-extension`
+
+Extension build:
+
+```bash
+cd integrations/easyeda-pro-import-extension
+npm install
+npm run build
+```
+
+Extension install/config details:
+
+- see `integrations/easyeda-pro-import-extension/README.md`
+- see `docs/EASYEDA_IMPORT.md`
 
 ## Running locally
 
@@ -293,6 +349,7 @@ CI also provides SQL Server so integration tests can verify:
 - CIS view installation
 - database-level unique constraints
 - admin authorization and audit behavior
+- EasyEDA staging import upsert and asset-storage behavior
 
 ## Key database constraints and indexes
 
@@ -317,13 +374,14 @@ Important indexes:
 - The repository still relies on SQL Server as the primary relational target; local work without SQL Server usually uses Docker.
 - The baseline migration is formalized, but future schema changes still need deliberate migration discipline.
 - The application still relies on ASP.NET Core Identity UI defaults for interactive sign-in and password policies.
+- The EasyEDA Pro connector depends on BETA extension APIs and best-effort document discovery.
 - Automated vendor download, footprint generation, `.olb` generation, ERP / PLM sync, and advanced multi-step workflows are not implemented yet.
 
 ## Planned next steps
 
-Recommended order after Milestone B2:
+Recommended order after Milestone B3:
 
 1. richer dashboard metrics
-2. bulk import / export workflows
+2. bulk import / export workflows across staging sources
 3. finer list filters and batch actions
 4. deeper approval workflow and notification refinement

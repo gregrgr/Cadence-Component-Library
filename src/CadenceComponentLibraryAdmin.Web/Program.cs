@@ -15,6 +15,7 @@ var bootstrapAdminOptions = builder.Configuration.GetSection("BootstrapAdmin").G
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
+builder.Services.Configure<ExternalImportOptions>(builder.Configuration.GetSection("ExternalImports"));
 
 var fileStorageOptions = builder.Configuration.GetSection("FileStorage").Get<FileStorageOptions>() ?? new FileStorageOptions();
 var dataProtectionRoot = fileStorageOptions.AppDataRoot ?? "storage/app-data";
@@ -40,6 +41,7 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 });
 builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
 builder.Services.AddScoped<IChangeLogService, ChangeLogService>();
+builder.Services.AddScoped<IExternalImportService, ExternalImportService>();
 builder.Services.AddScoped<IPackageFamilyService, PackageFamilyService>();
 builder.Services.AddScoped<ICompanyPartService, CompanyPartService>();
 builder.Services.AddScoped<IPartAlternateService, PartAlternateService>();

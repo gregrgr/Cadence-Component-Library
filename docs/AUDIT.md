@@ -98,3 +98,24 @@ Remaining limitations:
 
 - Identity user records still rely on ASP.NET Core Identity defaults and do not currently expose created/updated timestamps.
 - Bulk import/export, richer dashboard metrics, and deeper notification workflows remain out of scope for this milestone.
+
+## Milestone B3 Result
+
+- External staging import entities are implemented:
+  - `ExternalImportSources`
+  - `ExternalComponentImports`
+  - `ExternalComponentAssets`
+- `/ExternalImports` is implemented for authenticated review of staged imports and linked assets.
+- EasyEDA import APIs are implemented under `/api/import/easyeda` and require `X-Import-Api-Key` for ingest.
+- Imported records preserve normalized fields and raw JSON snapshots without auto-approving `CompanyParts`.
+- Imported records can be converted explicitly into `OnlineCandidates`, keeping the workflow staging-only.
+- Asset storage is file-based rather than SQL-blob based.
+- The repository now includes an EasyEDA Pro extension project under `integrations/easyeda-pro-import-extension`.
+- The import architecture and SDK capability scan are documented in `docs/EASYEDA_IMPORT.md`.
+
+Remaining limitations:
+
+- EasyEDA Pro library APIs used by the extension are BETA and may change.
+- `LIB_Device.getByLcscIds` may not work in private deployments.
+- `LIB_Footprint.getRenderImage` is treated as best-effort because it was not confirmed through the public reference index used during implementation.
+- STEP binaries may not always be obtainable directly from the SDK runtime, so URL preservation remains part of the design.

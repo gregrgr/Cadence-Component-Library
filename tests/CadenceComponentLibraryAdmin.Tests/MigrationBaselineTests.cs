@@ -57,6 +57,21 @@ public sealed class MigrationBaselineTests
             var views = await DatabaseBootstrapper.GetInstalledViewsAsync(dbContext);
             Assert.Contains("vw_CIS_Release_Parts", views);
             Assert.Contains("vw_CIS_Alternates", views);
+            Assert.Contains("ExternalImportSources", tables);
+            Assert.Contains("ExternalComponentImports", tables);
+            Assert.Contains("ExternalComponentAssets", tables);
+        });
+    }
+
+    [Fact]
+    public async Task InitializeAsync_KeepsCisAlternatesViewAvailable()
+    {
+        await RunAgainstFreshSqlServerDatabase(async dbContext =>
+        {
+            await DatabaseBootstrapper.InitializeAsync(dbContext);
+
+            var views = await DatabaseBootstrapper.GetInstalledViewsAsync(dbContext);
+            Assert.Contains("vw_CIS_Alternates", views);
         });
     }
 
