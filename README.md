@@ -1,48 +1,39 @@
 # CadenceComponentLibraryAdmin
 
-`CadenceComponentLibraryAdmin` 是一个面向 `OrCAD Capture CIS / Allegro` 元器件主数据管理的个人专业级 Web 后台。系统使用服务端渲染的 `ASP.NET Core MVC`，核心目标是管理企业元器件主数据库，并通过 `SQL View` 向 OrCAD Capture CIS 发布只读批准件。
+`CadenceComponentLibraryAdmin` is an ASP.NET Core MVC admin application for managing a Cadence / OrCAD component library baseline. It stores component master data in SQL Server, enforces core approval and packaging rules, and publishes CIS-facing read-only views for approved parts and alternates.
 
-## 当前实现范围
+## Current scope
 
-当前仓库已经完成到以下阶段：
+The repository currently includes:
 
-1. 项目骨架、Docker 部署、Identity、角色和管理员种子
-2. 领域实体、`DbContext`、Fluent API、视图 SQL 脚本
-3. 基础 CRUD 页面：
-   - Company Parts
-   - Manufacturer Parts
-   - Symbol Families
-   - Package Families
-   - Footprint Variants
-   - Online Candidates
-4. 业务规则：
-   - `PackageSignature` 自动生成与重复拦截
-   - `Approved CompanyPart` 审批前校验
-   - `Approved CompanyPart` 修改 Footprint / Symbol 写入 `PartChangeLog`
-   - `AltLevel A` 需要 Source / Target footprint 一致
-5. 质量报告：
-   - Duplicate MPN
-   - Approved Part Missing MPN
-   - Approved Part Missing Footprint
-   - Approved Part References Non-Released Footprint
-   - Missing Datasheet
-   - Duplicate Package Signature
-   - Orphan Footprint
-   - Missing Files
-6. 发布管理和审计：
-   - `Library Releases`
-   - `LIB_yyyy.MM.dd` 自动生成
-   - Release 前质量检查
-   - Release 历史
-   - Change Logs 查询与 CSV 导出
-7. UI 收口：
-   - 左侧菜单
-   - 状态 badge
-   - 全局提示
-   - 删除确认
-   - 列表分页
+- Layered solution structure:
+  - `src/CadenceComponentLibraryAdmin.Web`
+  - `src/CadenceComponentLibraryAdmin.Application`
+  - `src/CadenceComponentLibraryAdmin.Domain`
+  - `src/CadenceComponentLibraryAdmin.Infrastructure`
+  - `tests/CadenceComponentLibraryAdmin.Tests`
+- Core master-data modules:
+  - `CompanyParts`
+  - `ManufacturerParts`
+  - `SymbolFamilies`
+  - `PackageFamilies`
+  - `FootprintVariants`
+  - `OnlineCandidates`
+- Business rules:
+  - package signature generation and duplicate prevention
+  - approved part validation
+  - approved-part footprint / symbol change logging
+  - alternate-level checks
+- Operational modules:
+  - quality reports
+  - library releases
+  - change logs
+- Identity and role seeding
+- Docker Compose runtime
+- GitHub Actions CI
+- Formal EF Core migration baseline (`InitialCreate`)
 
-## 技术栈
+## Tech stack
 
 - `.NET 10`
 - `ASP.NET Core MVC`
@@ -52,7 +43,7 @@
 - `Bootstrap 5`
 - Docker Compose
 
-## 解决方案结构
+## Repository layout
 
 ```text
 CadenceComponentLibraryAdmin/
@@ -63,6 +54,7 @@ CadenceComponentLibraryAdmin/
 │  └─ CadenceComponentLibraryAdmin.Infrastructure/
 ├─ tests/
 │  └─ CadenceComponentLibraryAdmin.Tests/
+├─ docs/
 ├─ library/
 ├─ storage/
 ├─ docker-compose.yml
@@ -71,9 +63,9 @@ CadenceComponentLibraryAdmin/
 └─ CadenceComponentLibraryAdmin.sln
 ```
 
-## 角色和默认管理员
+## Roles and development admin
 
-系统启动后会自动初始化以下角色：
+Roles seeded by the application:
 
 - `Admin`
 - `Librarian`
@@ -82,84 +74,123 @@ CadenceComponentLibraryAdmin/
 - `Designer`
 - `Viewer`
 
-开发环境默认管理员账号：
+Development-only default admin:
 
 - Email: `admin@local.test`
 - Password: `Admin@123456`
 
-说明：
+Notes:
 
-- 仅当 `ASPNETCORE_ENVIRONMENT=Development` 时才会自动播种上述默认管理员。
-- 非开发环境仍会初始化角色，但不会自动创建带已知默认密码的管理员账号。
+- The default admin is created only when `ASPNETCORE_ENVIRONMENT=Development`.
+- Non-development environments still seed roles, but they do not create a known default administrator automatically.
 
-## 本地运行前提
+## Running locally
 
-### 方式 1：使用 Docker
+### Option 1: Docker Compose
 
-这是当前最推荐的方式，尤其适合本机没有 `.NET SDK` 的场景。
+This is the easiest path if the machine does not already have the `.NET 10 SDK`.
 
-1. 复制环境变量模板
+1. Copy the environment template:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-2. 在 `.env` 里设置 `SA_PASSWORD`
+2. Set a strong `SA_PASSWORD` in `.env`.
 
-3. 启动服务
+3. Start the stack:
 
 ```powershell
 docker compose up --build
 ```
 
-启动后服务地址：
+Runtime endpoints:
 
 - Web: [http://localhost:8080](http://localhost:8080)
 - SQL Server: `localhost:14333`
-- 默认登录仅适用于 Development 环境下的首次本地或 Docker 验证。
 
-### 方式 2：使用本机 .NET SDK
+The default Docker flow uses `ASPNETCORE_ENVIRONMENT=Development`, so the web app can apply migrations and refresh CIS views automatically on startup.
 
-如果机器已安装 `.NET 10 SDK`，可直接使用以下命令：
+### Option 2: Local .NET SDK
+
+If `.NET 10 SDK` is installed:
 
 ```powershell
 dotnet restore
 dotnet build
+dotnet test
 dotnet ef database update --project src/CadenceComponentLibraryAdmin.Infrastructure --startup-project src/CadenceComponentLibraryAdmin.Web
 dotnet run --project src/CadenceComponentLibraryAdmin.Web
 ```
 
-## EF Core Migration 命令
+## EF Core migration workflow
 
-当前应用保留了“无 Migration 时的启动兜底”，用于开发期快速拉起数据库并安装 `SQL View`。
-但为了更稳定的环境一致性，后续仍建议补正式的 `InitialCreate` migration。
+Milestone B0 establishes a formal EF Core baseline.
 
-创建迁移：
+- `InitialCreate` is the first committed migration.
+- `dotnet ef database update` is the authoritative schema-baseline command.
+- The initial migration creates the SQL Server schema, ASP.NET Core Identity tables, and the baseline CIS views.
+
+Create a new migration:
 
 ```powershell
-dotnet ef migrations add InitialCreate --project src/CadenceComponentLibraryAdmin.Infrastructure --startup-project src/CadenceComponentLibraryAdmin.Web
+dotnet ef migrations add <MigrationName> --project src/CadenceComponentLibraryAdmin.Infrastructure --startup-project src/CadenceComponentLibraryAdmin.Web
 ```
 
-应用迁移：
+Apply migrations:
 
 ```powershell
 dotnet ef database update --project src/CadenceComponentLibraryAdmin.Infrastructure --startup-project src/CadenceComponentLibraryAdmin.Web
 ```
 
-## Docker 持久化
+Design-time connection string resolution:
 
-当前 Docker 环境已经配置好持久化：
+- `ConnectionStrings__DefaultConnection`
+- `CADENCE_DEFAULT_CONNECTION`
 
-- SQL Server 数据卷：
+If neither is set, tooling falls back to the local trusted-connection default from the repository.
+
+## Database startup behavior
+
+- Development:
+  - startup applies migrations automatically
+  - startup refreshes CIS SQL views from the authoritative script
+- Non-development:
+  - startup does not apply schema changes unless `Database:ApplySchemaChangesOnStartup=true` is set intentionally
+  - startup verifies that migrations are already applied and required CIS views already exist
+
+This keeps development convenient while avoiding silent schema rewrites in higher environments.
+
+## CIS SQL views
+
+Authoritative runtime view script:
+
+- `src/CadenceComponentLibraryAdmin.Infrastructure/Data/Views/CisViews.sql`
+
+Views:
+
+- `dbo.vw_CIS_Release_Parts`
+- `dbo.vw_CIS_Alternates`
+
+Baseline behavior:
+
+- the migration creates the views as part of the initial database baseline
+- `DatabaseBootstrapper` can re-apply the script at runtime in Development so view changes stay deterministic during local iteration
+
+## Docker persistence
+
+The Docker stack persists:
+
+- SQL Server data:
   - Docker volume `sqlserver-data`
-- 应用数据：
+- application data:
   - `./storage/app-data`
-- 库文件：
+- library files:
   - `./library`
-- 应用日志：
+- application logs:
   - `./storage/logs`
 
-`./library` 目录用于承载 Cadence 相关文件资源，例如：
+The `library` directory is intended for Cadence assets such as:
 
 - `Symbols_OLB`
 - `Footprints`
@@ -167,114 +198,52 @@ dotnet ef database update --project src/CadenceComponentLibraryAdmin.Infrastruct
 - `3D`
 - `Docs`
 
-## 数据库与发布视图
+## Testing and CI
 
-目标数据库名称：
+GitHub Actions CI runs:
 
-- `CadenceComponentLibrary`
+- `dotnet restore`
+- `dotnet build --no-restore --configuration Release`
+- `dotnet test --no-build --configuration Release`
 
-当前基础模型已包含：
+CI also provides SQL Server so integration tests can verify:
 
-- `CompanyParts`
-- `ManufacturerParts`
-- `SymbolFamilies`
-- `PackageFamilies`
-- `FootprintVariants`
-- `OnlineCandidates`
-- `PartAlternates`
-- `PartDocs`
-- `PartChangeLogs`
-- `LibraryReleases`
+- migration existence
+- schema creation through EF Core migrations
+- CIS view installation
+- database-level unique constraints
 
-基础视图脚本位于：
+## Key database constraints and indexes
 
-- `src/CadenceComponentLibraryAdmin.Infrastructure/Data/Views/CisViews.sql`
+Important unique constraints:
 
-其中包括：
+- `CompanyPart.CompanyPN`
+- `ManufacturerPart(Manufacturer, ManufacturerPN)`
+- `SymbolFamily.SymbolFamilyCode`
+- `PackageFamily.PackageFamilyCode`
+- `PackageFamily.PackageSignature`
+- `FootprintVariant.FootprintName`
 
-- `dbo.vw_CIS_Release_Parts`
-- `dbo.vw_CIS_Alternates`
+Important indexes:
 
-## 当前主要页面
+- `OnlineCandidate(Manufacturer, ManufacturerPN)`
+- `CompanyPart.ApprovalStatus`
+- `CompanyPart.DefaultFootprintName`
+- `CompanyPart.PackageFamilyCode`
 
-已实现页面：
+## Current limitations
 
-- `/`
-- `/CompanyParts`
-- `/ManufacturerParts`
-- `/SymbolFamilies`
-- `/PackageFamilies`
-- `/FootprintVariants`
-- `/OnlineCandidates`
-- `/QualityReports`
-- `/LibraryReleases`
-- `/ChangeLogs`
+- The repository still relies on SQL Server as the primary relational target; local work without SQL Server usually uses Docker.
+- The baseline migration is now formalized, but future schema changes still need deliberate migration discipline.
+- The application does not yet include all planned workflow pages and admin tooling.
+- Automated vendor download, footprint generation, `.olb` generation, ERP / PLM sync, and advanced multi-step workflows are not implemented yet.
 
-## 当前已实现的关键规则
+## Planned next steps
 
-### CompanyPart 审批规则
+Recommended order after Milestone B0:
 
-当 `ApprovalStatus = Approved` 时，系统会检查：
-
-1. 至少一个 `IsApproved = true` 的 `ManufacturerPart`
-2. 有效 `SymbolFamily`
-3. 有效 `PackageFamily`
-4. `DefaultFootprint` 存在且状态为 `Released`
-5. `DatasheetUrl` 不为空
-
-### PackageSignature 规则
-
-`PackageFamily` 保存前会自动生成：
-
-```text
-MountType|LeadCount|BodyL|BodyW|Pitch|EP_L|EP_W
-```
-
-若签名重复，系统会拦截保存并提示复用已有封装家族。
-
-### PartChangeLog 规则
-
-当已批准的 `CompanyPart` 修改以下字段时，会自动写入 `PartChangeLog`：
-
-- `DefaultFootprintName`
-- `SymbolFamilyCode`
-
-### Release 规则
-
-正式 `Release` 前会执行 `QualityReports`。若仍存在任何质量问题，则不允许正式发布。
-
-## 质量报告
-
-当前 `Quality Reports` 页面已支持：
-
-- 页面查看
-- 问题汇总
-- 每项报告导出 CSV
-
-文件缺失检查覆盖：
-
-- `SymbolFamily.OlbPath`
-- `FootprintVariant.PsmPath`
-- `FootprintVariant.DraPath`
-- `FootprintVariant.StepPath`
-
-## 当前已知边界
-
-- 当前机器如果只有 `.NET runtime` 而没有 `.NET SDK`，则无法直接在本机执行 `dotnet build` 或生成迁移。
-- 仓库目前尚未实现：
-  - 自动下载厂商数据
-  - 自动生成 footprint
-  - 自动写 `.olb`
-  - ERP / PLM 双向同步
-  - 多租户
-  - 复杂工作流引擎
-
-## 下一步建议
-
-如果继续往下迭代，优先建议做这几项：
-
-1. `Approval Queue` 页面
-2. `Alternates` 页面和替代料审批
-3. `Users / Roles` 后台管理页
-4. 更完整的 Dashboard 指标
-5. 更细的列表筛选和批量操作
+1. `Approval Queue`
+2. `Alternates` workflow
+3. `Users / Roles` administration
+4. richer dashboard metrics
+5. bulk import / export workflows

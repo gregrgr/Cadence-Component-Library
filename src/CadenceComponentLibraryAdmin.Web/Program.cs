@@ -47,6 +47,9 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 var app = builder.Build();
+var applySchemaChangesOnStartup =
+    app.Environment.IsDevelopment() ||
+    app.Configuration.GetValue<bool>("Database:ApplySchemaChangesOnStartup");
 
 if (!app.Environment.IsDevelopment())
 {
@@ -67,7 +70,14 @@ app.MapRazorPages();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await DatabaseBootstrapper.InitializeAsync(dbContext);
+    if (applySchemaChangesOnStartup)
+    {
+        await DatabaseBootstrapper.InitializeAsync(dbContext);
+    }
+    else
+    {
+        await DatabaseBootstrapper.VerifyDatabaseStateAsync(dbContext);
+    }
 }
 
 await IdentitySeeder.SeedAsync(app.Services, app.Environment.IsDevelopment());

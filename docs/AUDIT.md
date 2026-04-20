@@ -52,3 +52,18 @@ Expected development login:
 
 - Email: `admin@local.test`
 - Password: `Admin@123456`
+
+## Milestone B0 Result
+
+- A formal EF Core `InitialCreate` migration now exists and is committed.
+- `dotnet ef database update` is the authoritative way to establish the SQL Server schema baseline.
+- The initial migration creates the required application tables, ASP.NET Core Identity tables, and the CIS views.
+- Runtime view refresh still uses `src/CadenceComponentLibraryAdmin.Infrastructure/Data/Views/CisViews.sql` through `DatabaseBootstrapper`.
+- Database integration tests now verify:
+  - the migration exists
+  - SQL Server schema creation through migrations works
+  - CIS views exist after migration
+  - `PackageSignature` uniqueness is enforced by SQL Server
+  - `Manufacturer + ManufacturerPN` uniqueness is enforced by SQL Server
+- Remaining limitation:
+  - non-development environments do not apply schema changes automatically unless `Database:ApplySchemaChangesOnStartup=true` is set intentionally.

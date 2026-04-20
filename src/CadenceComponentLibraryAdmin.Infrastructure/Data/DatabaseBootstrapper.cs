@@ -33,6 +33,30 @@ public static class DatabaseBootstrapper
         await InstallViewsAsync(dbContext, cancellationToken);
     }
 
+    public static async Task VerifyDatabaseStateAsync(ApplicationDbContext dbContext, CancellationToken cancellationToken = default)
+    {
+        if (!await dbContext.Database.CanConnectAsync(cancellationToken))
+        {
+            throw new InvalidOperationException(
+                "The application database is not reachable. Apply EF Core migrations before starting in non-development environments.");
+        }
+
+        var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+        if (pendingMigrations.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Pending EF Core migrations were found: {string.Join(", ", pendingMigrations)}. Apply migrations explicitly before starting the application.");
+        }
+
+        var installedViews = await GetInstalledViewsAsync(dbContext, cancellationToken);
+        var missingViews = RequiredViews.Except(installedViews, StringComparer.OrdinalIgnoreCase).ToList();
+        if (missingViews.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Required CIS SQL views are missing: {string.Join(", ", missingViews)}. Reapply the database baseline before starting the application.");
+        }
+    }
+
     private static async Task<bool> TableExistsAsync(ApplicationDbContext dbContext, string tableName, CancellationToken cancellationToken)
     {
         var connection = dbContext.Database.GetDbConnection();
@@ -92,6 +116,21 @@ public static class DatabaseBootstrapper
         AddStatement(statements, current);
         return statements;
     }
+
+    internal static async Task<IReadOnlyList<string>> GetInstalledViewsAsync(
+        ApplicationDbContext dbContext,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Database
+            .SqlQueryRaw<string>("SELECT TABLE_NAME AS [Value] FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'dbo'")
+            .ToListAsync(cancellationToken);
+    }
+
+    internal static readonly string[] RequiredViews =
+    [
+        "vw_CIS_Release_Parts",
+        "vw_CIS_Alternates"
+    ];
 
     private static void AddStatement(List<string> statements, StringBuilder current)
     {
