@@ -43,3 +43,35 @@ docker compose --env-file .env -f docker-compose.yml -f docker-compose.sdk.yml r
 ```
 
 The wrapper script is recommended because it handles the shell quoting required by the `sdk` container entrypoint.
+
+## Codex CLI Docker bridge
+
+The Docker Web container uses a dedicated `codex-cli` service for the `CodexCli` extraction provider. Do not call a host-installed `codex` executable from the Web container.
+
+```powershell
+docker compose --env-file .env.example -f docker-compose.yml up -d --build codex-cli
+```
+
+If Codex CLI authentication is required, log in inside the container. The login state is stored in the Docker volume `codex-cli-home`:
+
+```powershell
+docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login
+```
+
+Then restart Web with the Docker bridge environment:
+
+```powershell
+$env:AI_EXTRACTION_MODE="CodexCli"
+$env:AI_CODEXCLI_ENABLED="true"
+$env:AI_CODEXCLI_TRANSPORT="HttpBridge"
+$env:AI_CODEXCLI_BRIDGE_URL="http://codex-cli:4517"
+docker compose --env-file .env.example -f docker-compose.yml up -d --build web
+```
+
+After that, the `/AiIntake/{id}/RunExtraction` action will call the `codex-cli` container, and the container will invoke `codex exec`.
+
+The service maps `127.0.0.1:4517` for local health checks:
+
+```powershell
+curl.exe http://localhost:4517/health
+```

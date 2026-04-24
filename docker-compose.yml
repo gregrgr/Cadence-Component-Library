@@ -34,6 +34,18 @@ services:
       FileStorage__LogRoot: "/logs"
       ExternalImports__EasyEdaApiKey: "${EASYEDA_IMPORT_API_KEY:-change-me}"
       ExternalImports__StorageRoot: "/app-data/ExternalImports"
+      AiExtraction__Mode: "${AI_EXTRACTION_MODE:-Stub}"
+      AiExtraction__CodexCli__Enabled: "${AI_CODEXCLI_ENABLED:-false}"
+      AiExtraction__CodexCli__Transport: "${AI_CODEXCLI_TRANSPORT:-HttpBridge}"
+      AiExtraction__CodexCli__Command: "${AI_CODEXCLI_COMMAND:-codex}"
+      AiExtraction__CodexCli__Model: "${AI_CODEXCLI_MODEL:-}"
+      AiExtraction__CodexCli__Profile: "${AI_CODEXCLI_PROFILE:-}"
+      AiExtraction__CodexCli__Sandbox: "${AI_CODEXCLI_SANDBOX:-read-only}"
+      AiExtraction__CodexCli__Ephemeral: "${AI_CODEXCLI_EPHEMERAL:-true}"
+      AiExtraction__CodexCli__TimeoutSeconds: "${AI_CODEXCLI_TIMEOUT_SECONDS:-180}"
+      AiExtraction__CodexCli__WorkingDirectory: "${AI_CODEXCLI_WORKING_DIRECTORY:-}"
+      AiExtraction__CodexCli__BridgeUrl: "${AI_CODEXCLI_BRIDGE_URL:-http://codex-cli:4517}"
+      AiExtraction__CodexCli__BridgeToken: "${AI_CODEXCLI_BRIDGE_TOKEN:-}"
     ports:
       - "8080:8080"
     volumes:
@@ -41,6 +53,28 @@ services:
       - ./library:/library
       - ./storage/logs:/logs
 
+  codex-cli:
+    build:
+      context: .
+      dockerfile: docker/codex-cli-bridge/Dockerfile
+    container_name: cadencecomponentlibraryadmin-codex-cli
+    environment:
+      CODEX_HOME: "/codex-home"
+      CODEX_BRIDGE_TOKEN: "${AI_CODEXCLI_BRIDGE_TOKEN:-}"
+      CODEX_COMMAND: "${AI_CODEXCLI_COMMAND:-codex}"
+    ports:
+      - "127.0.0.1:4517:4517"
+    volumes:
+      - codex-cli-home:/codex-home
+      - ./:/workspace:ro
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:4517/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   sqlserver-data:
+  codex-cli-home:
 

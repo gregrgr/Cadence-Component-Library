@@ -65,9 +65,9 @@ Current implementations:
   - deterministic development and test implementation
   - produces valid `component_extraction`, `symbol_spec`, and `footprint_spec` JSON
 - `CodexCliDatasheetExtractionService`
-  - optional local CLI provider
+  - optional Docker-hosted CLI provider
   - disabled by default
-  - invokes `codex exec` through a controlled process adapter
+  - invokes `codex exec` through a controlled Docker bridge adapter
   - validates the final structured output before saving
 - `OpenAiCompatibleDatasheetExtractionService`
   - optional
@@ -87,13 +87,16 @@ The Codex CLI provider is selected with:
     "Mode": "CodexCli",
     "CodexCli": {
       "Enabled": true,
+      "Transport": "HttpBridge",
       "Command": "codex",
       "Model": "",
       "Profile": "",
       "Sandbox": "read-only",
       "Ephemeral": true,
       "TimeoutSeconds": 180,
-      "WorkingDirectory": ""
+      "WorkingDirectory": "",
+      "BridgeUrl": "http://codex-cli:4517",
+      "BridgeToken": ""
     }
   }
 }
@@ -103,7 +106,8 @@ Runtime behavior:
 
 - the Web application calls `IAiDatasheetExtractionService`
 - `CodexCliDatasheetExtractionService` builds a structured extraction prompt
-- `CodexCliRunner` invokes `codex exec`
+- `CodexCliHttpBridgeRunner` sends the prompt to the Docker `codex-cli` service
+- the `codex-cli` service invokes `codex exec` inside its own container
 - the CLI final message must contain one JSON object
 - the JSON object must include:
   - `componentExtraction`
@@ -117,6 +121,49 @@ Runtime behavior:
 The Codex CLI provider does not receive permission to publish library data, run Cadence tools, or execute arbitrary `Tcl` / `SKILL`. It only proposes reviewable JSON that remains in `Draft` or `NeedsReview`.
 
 CI uses fake `ICodexCliRunner` tests and does not require a real Codex CLI login.
+
+### Docker Codex CLI bridge
+
+The supported local Docker path uses a dedicated `codex-cli` service. The Web container does not call a host-installed `codex` executable.
+
+```powershell
+docker compose --env-file .env.example -f docker-compose.yml up -d --build codex-cli
+```
+
+If the Codex CLI inside the container needs authentication, run login inside the container so credentials are stored in the Docker volume `codex-cli-home`:
+
+```powershell
+docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login
+```
+
+Then start Web with Codex CLI extraction enabled:
+
+```powershell
+$env:AI_EXTRACTION_MODE="CodexCli"
+$env:AI_CODEXCLI_ENABLED="true"
+$env:AI_CODEXCLI_TRANSPORT="HttpBridge"
+$env:AI_CODEXCLI_BRIDGE_URL="http://codex-cli:4517"
+docker compose --env-file .env.example -f docker-compose.yml up -d --build web
+```
+
+The request path is:
+
+```text
+Docker Web -> codex-cli:4517 -> codex exec inside the codex-cli container
+```
+
+The `codex-cli` container installs the CLI with `npm install -g @openai/codex` at image build time. Its bridge only exposes:
+
+- `GET /health`
+- `POST /extract`
+
+If `AI_CODEXCLI_BRIDGE_TOKEN` is configured, the Web container sends it as `X-Codex-Bridge-Token` and the bridge validates it.
+
+Use this command to verify the bridge is healthy from the host:
+
+```powershell
+curl.exe http://localhost:4517/health
+```
 
 ## Field-level evidence
 
