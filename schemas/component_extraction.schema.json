@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cadence-component-library.local/schemas/component_extraction.schema.json",
+  "title": "Component Extraction",
+  "type": "object",
+  "required": [
+    "manufacturer",
+    "manufacturerPartNumber",
+    "fields"
+  ],
+  "properties": {
+    "manufacturer": {
+      "type": "string"
+    },
+    "manufacturerPartNumber": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "value"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "value": {},
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -14,6 +14,11 @@ public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<CompanyPart> CompanyParts => Set<CompanyPart>();
+    public DbSet<AiDatasheetExtraction> AiDatasheetExtractions => Set<AiDatasheetExtraction>();
+    public DbSet<AiExtractionEvidence> AiExtractionEvidenceItems => Set<AiExtractionEvidence>();
+    public DbSet<CadenceBuildJob> CadenceBuildJobs => Set<CadenceBuildJob>();
+    public DbSet<CadenceBuildArtifact> CadenceBuildArtifacts => Set<CadenceBuildArtifact>();
+    public DbSet<LibraryVerificationReport> LibraryVerificationReports => Set<LibraryVerificationReport>();
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
     public DbSet<ExternalImportSource> ExternalImportSources => Set<ExternalImportSource>();
     public DbSet<ExternalComponentImport> ExternalComponentImports => Set<ExternalComponentImport>();

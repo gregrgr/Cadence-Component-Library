@@ -1,0 +1,60 @@
+@using System.Text.Json
+@model CadenceComponentLibraryAdmin.Web.Models.AiIntakeVerificationViewModel
+
+@functions {
+    private string Pretty(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "No report data";
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(value);
+            return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (JsonException)
+        {
+            return value;
+        }
+    }
+}
+
+@{
+    ViewData["Title"] = "AI Intake Verification";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Verification</h1>
+        <p class="text-muted mb-0">Latest verification report for extraction #@Model.Extraction.Id.</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Extraction.Id" class="btn btn-outline-secondary">Back</a>
+</div>
+
+<div class="card page-card">
+    <div class="card-body">
+        @if (Model.Report is null)
+        {
+            <p class="text-muted mb-0">No verification report available yet.</p>
+        }
+        else
+        {
+            <div class="mb-3">
+                <span class="badge text-bg-light border">@Model.Report.OverallStatus</span>
+                <span class="text-muted small ms-2">@Model.Report.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h2 class="h6">Symbol Report</h2>
+                    <pre class="small mb-0">@Pretty(Model.Report.SymbolReportJson)</pre>
+                </div>
+                <div class="col-md-6">
+                    <h2 class="h6">Footprint Report</h2>
+                    <pre class="small mb-0">@Pretty(Model.Report.FootprintReportJson)</pre>
+                </div>
+            </div>
+        }
+    </div>
+</div>

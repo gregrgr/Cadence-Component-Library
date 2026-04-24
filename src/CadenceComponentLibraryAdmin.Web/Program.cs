@@ -19,6 +19,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
 builder.Services.Configure<ExternalImportOptions>(builder.Configuration.GetSection("ExternalImports"));
+builder.Services.Configure<CadenceAutomationOptions>(builder.Configuration.GetSection("CadenceAutomation"));
+builder.Services.Configure<AiExtractionOptions>(builder.Configuration.GetSection("AiExtraction"));
 
 var fileStorageOptions = builder.Configuration.GetSection("FileStorage").Get<FileStorageOptions>() ?? new FileStorageOptions();
 var dataProtectionRoot = fileStorageOptions.AppDataRoot ?? "storage/app-data";
@@ -45,6 +47,31 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
 builder.Services.AddScoped<IChangeLogService, ChangeLogService>();
 builder.Services.AddScoped<IExternalImportService, ExternalImportService>();
+builder.Services.AddScoped<IMcpLibraryWorkflowService, McpLibraryWorkflowService>();
+builder.Services.AddScoped<IDatasheetTextExtractor, LocalPdfTextExtractor>();
+builder.Services.AddScoped<IJsonSchemaValidationService, JsonSchemaValidationService>();
+builder.Services.AddHttpClient<OpenAiCompatibleDatasheetExtractionService>();
+builder.Services.AddScoped<ICodexCliRunner, CodexCliRunner>();
+builder.Services.AddScoped<CodexCliDatasheetExtractionService>();
+builder.Services.AddScoped<StubAiDatasheetExtractionService>();
+builder.Services.AddScoped<IAiDatasheetExtractionService>(serviceProvider =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<AiExtractionOptions>>().Value;
+    var useCodexCli = options.CodexCli.Enabled ||
+                      string.Equals(options.Mode, "CodexCli", StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(options.Mode, "Codex", StringComparison.OrdinalIgnoreCase);
+    var useOpenAi = options.OpenAI.Enabled ||
+                    string.Equals(options.Mode, "OpenAI", StringComparison.OrdinalIgnoreCase);
+
+    if (useCodexCli)
+    {
+        return serviceProvider.GetRequiredService<CodexCliDatasheetExtractionService>();
+    }
+
+    return useOpenAi
+        ? serviceProvider.GetRequiredService<OpenAiCompatibleDatasheetExtractionService>()
+        : serviceProvider.GetRequiredService<StubAiDatasheetExtractionService>();
+});
 builder.Services.AddHttpClient<INlbnEasyEdaClient, NlbnEasyEdaClient>((serviceProvider, client) =>
 {
     var options = serviceProvider.GetRequiredService<IOptions<ExternalImportOptions>>().Value;

@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Tests", "tests\CadenceComponentLibraryAdmin.Tests\CadenceComponentLibraryAdmin.Tests.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A005}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.Mcp", "src\CadenceComponentLibraryAdmin.Mcp\CadenceComponentLibraryAdmin.Mcp.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CadenceComponentLibraryAdmin.CadenceBridge", "src\CadenceComponentLibraryAdmin.CadenceBridge\CadenceComponentLibraryAdmin.CadenceBridge.csproj", "{A47E2748-F91E-4D45-B7A2-0B73D555A007}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +42,14 @@ Global
 		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A47E2748-F91E-4D45-B7A2-0B73D555A005}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A007}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A007}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A007}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47E2748-F91E-4D45-B7A2-0B73D555A007}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

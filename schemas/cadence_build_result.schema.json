@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cadence-component-library.local/schemas/cadence_build_result.schema.json",
+  "title": "Cadence Build Result",
+  "type": "object",
+  "required": [
+    "jobType",
+    "status"
+  ],
+  "properties": {
+    "jobType": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "toolName": {
+      "type": "string"
+    },
+    "toolVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "artifactType": {
+            "type": "string"
+          },
+          "filePath": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "artifactType",
+          "filePath"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

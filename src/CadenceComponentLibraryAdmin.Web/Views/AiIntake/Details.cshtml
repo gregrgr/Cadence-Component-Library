@@ -1,0 +1,173 @@
+@using System.Text.Json
+@using CadenceComponentLibraryAdmin.Domain.Enums
+@model CadenceComponentLibraryAdmin.Web.Models.AiIntakeDetailsViewModel
+
+@functions {
+    private string Pretty(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "No data";
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(value);
+            return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (JsonException)
+        {
+            return value;
+        }
+    }
+}
+
+@{
+    ViewData["Title"] = "AI Intake Details";
+    var item = Model.Extraction;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">AI Intake Details</h1>
+        <p class="text-muted mb-0">AI extraction remains review data until approved for build. Build approval does not publish to CompanyPart or CIS.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">Edit</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Summary</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Manufacturer</dt>
+                    <dd class="col-sm-8">@item.Manufacturer</dd>
+                    <dt class="col-sm-4">Manufacturer Part Number</dt>
+                    <dd class="col-sm-8">@item.ManufacturerPartNumber</dd>
+                    <dt class="col-sm-4">Confidence</dt>
+                    <dd class="col-sm-8">@item.Confidence</dd>
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8"><span class="badge text-bg-light border">@item.Status</span></dd>
+                    <dt class="col-sm-4">Created</dt>
+                    <dd class="col-sm-8">@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
+                    <dt class="col-sm-4">Reviewed</dt>
+                    <dd class="col-sm-8">@(item.ReviewedAtUtc.HasValue ? item.ReviewedAtUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "Not reviewed")</dd>
+                    <dt class="col-sm-4">Candidate</dt>
+                    <dd class="col-sm-8">@(Model.Candidate is null ? "None" : $"#{Model.Candidate.Id} {Model.Candidate.ManufacturerPN}")</dd>
+                    <dt class="col-sm-4">External Import</dt>
+                    <dd class="col-sm-8">@(Model.ExternalImport is null ? "None" : $"#{Model.ExternalImport.Id} {Model.ExternalImport.SourceName}")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">ExtractionJson</h2>
+                <pre class="small mb-0">@Pretty(item.ExtractionJson)</pre>
+            </div>
+        </div>
+
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">SymbolSpecJson</h2>
+                <pre class="small mb-0">@Pretty(item.SymbolSpecJson)</pre>
+            </div>
+        </div>
+
+        <div class="card page-card">
+            <div class="card-body">
+                <h2 class="h5">FootprintSpecJson</h2>
+                <pre class="small mb-0">@Pretty(item.FootprintSpecJson)</pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card page-card mb-4">
+            <div class="card-body">
+                <h2 class="h5">Actions</h2>
+                <div class="d-grid gap-2">
+                    <form asp-action="RunExtraction" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Run AI extraction for this draft?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-primary w-100">Run Extraction</button>
+                    </form>
+
+                    @if (Model.CanApproveForBuild)
+                    {
+                        <form asp-action="ApproveForBuild" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Approve this extraction for build?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100" @(item.Status == AiDatasheetExtractionStatus.ApprovedForBuild ? "disabled" : null)>Approve For Build</button>
+                        </form>
+                    }
+
+                    <form asp-action="BuildSymbol" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Queue Capture symbol build?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary w-100" @(Model.CanBuildSymbol ? null : "disabled")>Build Symbol</button>
+                    </form>
+
+                    <form asp-action="BuildFootprint" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Queue Allegro footprint build?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary w-100" @(Model.CanBuildFootprint ? null : "disabled")>Build Footprint</button>
+                    </form>
+
+                    <a asp-action="Jobs" asp-route-id="@item.Id" class="btn btn-outline-secondary">Jobs</a>
+                    <a asp-action="Verification" asp-route-id="@item.Id" class="btn btn-outline-secondary">Verification</a>
+                </div>
+
+                @if (!Model.BuildActionsEnabled)
+                {
+                    <div class="small text-muted mt-3">Build actions stay disabled until the extraction reaches <code>ApprovedForBuild</code>.</div>
+                }
+            </div>
+        </div>
+
+        <div class="card page-card">
+            <div class="card-body">
+                <h2 class="h5">Evidence</h2>
+                @if (Model.EvidenceItems.Count == 0)
+                {
+                    <p class="text-muted mb-0">No evidence rows recorded yet.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Value</th>
+                                <th>Source</th>
+                                <th>Decision</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var evidence in Model.EvidenceItems)
+                            {
+                                <tr>
+                                    <td>@evidence.FieldPath</td>
+                                    <td>
+                                        <div>@evidence.ValueText</div>
+                                        @if (!string.IsNullOrWhiteSpace(evidence.Unit))
+                                        {
+                                            <div class="small text-muted">@evidence.Unit</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div>Page: @(evidence.SourcePage?.ToString() ?? "-")</div>
+                                        <div class="small text-muted">@evidence.SourceTable @evidence.SourceFigure</div>
+                                    </td>
+                                    <td><span class="badge text-bg-light border">@evidence.ReviewerDecision</span></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

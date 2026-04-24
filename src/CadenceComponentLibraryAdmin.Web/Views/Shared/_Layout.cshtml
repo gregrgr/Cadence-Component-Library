@@ -58,6 +58,7 @@
         var canViewAlternates = isAdmin || isLibrarian || isEeReviewer || isViewer;
         var canViewOnlineCandidates = isAdmin || isLibrarian || isEeReviewer || isPurchasing || isDesigner;
         var canViewExternalImports = isAdmin || isLibrarian || isEeReviewer || isPurchasing || isDesigner;
+        var canViewAiIntake = isAdmin || isLibrarian || isEeReviewer || isDesigner;
     }
     <div class="d-flex app-shell">
         <aside class="sidebar text-white p-3 d-none d-lg-block">
@@ -75,6 +76,10 @@
                 @if (canViewExternalImports)
                 {
                             <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "ExternalImports" ? "active" : string.Empty)" asp-area="" asp-controller="ExternalImports" asp-action="Index">External Imports - EasyEDA/LCSC</a>
+                }
+                @if (canViewAiIntake)
+                {
+                    <a class="nav-link @(string.IsNullOrEmpty(currentArea) && currentController == "AiIntake" ? "active" : string.Empty)" asp-area="" asp-controller="AiIntake" asp-action="Index">AI Intake</a>
                 }
                 @if (canViewCompanyParts)
                 {

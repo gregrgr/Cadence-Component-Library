@@ -1,0 +1,48 @@
+@model CadenceComponentLibraryAdmin.Web.Models.AiIntakeEditViewModel
+
+@{
+    ViewData["Title"] = "Edit AI Intake Draft";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">Edit AI Intake Draft</h1>
+        <p class="text-muted mb-0">Edit reviewable extraction JSON. JSON must be valid before save.</p>
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back</a>
+</div>
+
+<div class="card page-card">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div class="col-md-6">
+                <label asp-for="Manufacturer" class="form-label"></label>
+                <input asp-for="Manufacturer" class="form-control" readonly />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ManufacturerPartNumber" class="form-label"></label>
+                <input asp-for="ManufacturerPartNumber" class="form-control" readonly />
+            </div>
+            <div class="col-12">
+                <label asp-for="ExtractionJson" class="form-label"></label>
+                <textarea asp-for="ExtractionJson" class="form-control font-monospace" rows="10"></textarea>
+                <span asp-validation-for="ExtractionJson" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="SymbolSpecJson" class="form-label"></label>
+                <textarea asp-for="SymbolSpecJson" class="form-control font-monospace" rows="10"></textarea>
+                <span asp-validation-for="SymbolSpecJson" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="FootprintSpecJson" class="form-label"></label>
+                <textarea asp-for="FootprintSpecJson" class="form-control font-monospace" rows="10"></textarea>
+                <span asp-validation-for="FootprintSpecJson" class="text-danger"></span>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

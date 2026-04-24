@@ -1,0 +1,88 @@
+@using CadenceComponentLibraryAdmin.Domain.Enums
+@model CadenceComponentLibraryAdmin.Web.Models.AiIntakeIndexViewModel
+
+@{
+    ViewData["Title"] = "AI Intake";
+}
+
+<div class="card page-card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h4 mb-1">AI Intake</h1>
+                <p class="text-muted mb-0">Reviewable AI-assisted extraction drafts. Approval for build does not publish parts or release library artifacts.</p>
+            </div>
+        </div>
+
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    @foreach (var status in Enum.GetValues<AiDatasheetExtractionStatus>())
+                    {
+                        <option value="@status" selected="@(Model.Status == status)">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-8 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Manufacturer</th>
+                    <th>MPN</th>
+                    <th>Confidence</th>
+                    <th>Status</th>
+                    <th>Source</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Result.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="text-muted">No AI extraction drafts found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model.Result.Items)
+                    {
+                        <tr>
+                            <td class="font-monospace">@item.Id</td>
+                            <td>@item.Manufacturer</td>
+                            <td>@item.ManufacturerPartNumber</td>
+                            <td>@item.Confidence</td>
+                            <td><span class="badge text-bg-light border">@item.Status</span></td>
+                            <td>
+                                @if (item.CandidateId.HasValue)
+                                {
+                                    <div>Candidate #@item.CandidateId</div>
+                                }
+                                @if (item.ExternalImportId.HasValue)
+                                {
+                                    <div>Import #@item.ExternalImportId</div>
+                                }
+                            </td>
+                            <td>@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <partial name="_Pagination" model="Model.Result" />
+    </div>
+</div>

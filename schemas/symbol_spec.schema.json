@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cadence-component-library.local/schemas/symbol_spec.schema.json",
+  "title": "Symbol Spec",
+  "type": "object",
+  "properties": {
+    "symbolName": {
+      "type": "string"
+    },
+    "partClass": {
+      "type": "string"
+    },
+    "pinMap": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "number",
+          "name"
+        ],
+        "properties": {
+          "number": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

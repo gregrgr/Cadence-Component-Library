@@ -64,6 +64,10 @@
     </div>
     <div class="d-flex gap-2">
         <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+        @if (User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer") || User.IsInRole("Designer"))
+        {
+            <a asp-controller="AiIntake" asp-action="CreateFromExternalImport" asp-route-externalImportId="@item.Id" class="btn btn-outline-primary">Create AI Draft</a>
+        }
         @if (User.IsInRole("Admin") || User.IsInRole("Librarian") || User.IsInRole("EEReviewer"))
         {
             <form asp-action="CreateCandidate" method="post" onsubmit="return confirm('Create an Online Candidate from this staged import?');">
