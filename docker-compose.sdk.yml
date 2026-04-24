@@ -1,0 +1,23 @@
+services:
+  sdk:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    container_name: cadencecomponentlibraryadmin-sdk
+    working_dir: /workspace
+    entrypoint:
+      - /bin/sh
+      - -lc
+    command: sleep infinity
+    environment:
+      DOTNET_CLI_HOME: /tmp/dotnet
+      NUGET_PACKAGES: /root/.nuget/packages
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=${DB_NAME:-CadenceComponentLibrary};User ID=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      CADENCE_DEFAULT_CONNECTION: "Server=sqlserver;Database=${DB_NAME:-CadenceComponentLibrary};User ID=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+    volumes:
+      - ./:/workspace
+      - nuget-packages:/root/.nuget/packages
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+volumes:
+  nuget-packages:
