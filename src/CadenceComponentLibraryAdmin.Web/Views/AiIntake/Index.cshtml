@@ -74,7 +74,13 @@
                             </td>
                             <td>@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                                    <form asp-action="RunExtraction" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Run AI extraction for this draft?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-primary">Run Extraction</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }
