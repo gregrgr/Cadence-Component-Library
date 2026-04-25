@@ -231,38 +231,6 @@ function stripAnsi(text) {
   return String(text).replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, "");
 }
 
-function loginWithApiKey(command, apiKey) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, ["login", "--with-api-key"], {
-      stdio: ["pipe", "pipe", "pipe"],
-      env: process.env
-    });
-
-    let output = "";
-    const appendOutput = chunk => {
-      output += stripAnsi(chunk);
-      output = output.slice(-20_000);
-    };
-
-    child.stdout.setEncoding("utf8");
-    child.stderr.setEncoding("utf8");
-    child.stdout.on("data", appendOutput);
-    child.stderr.on("data", appendOutput);
-    child.on("error", reject);
-    child.on("close", code => {
-      resolve({
-        success: code === 0,
-        output,
-        error: code === 0 ? null : output.trim() || `codex login exited with code ${code}`
-      });
-    });
-
-    child.stdin.write(apiKey);
-    child.stdin.write("\n");
-    child.stdin.end();
-  });
-}
-
 function renderLoginPage() {
   return `<!doctype html>
 <html lang="en">
@@ -274,9 +242,6 @@ function renderLoginPage() {
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 2rem; max-width: 920px; color: #1f2937; }
     button, a.button { border: 0; border-radius: .5rem; background: #0d6efd; color: white; padding: .7rem 1rem; text-decoration: none; cursor: pointer; display: inline-block; }
     button.secondary { background: #475569; }
-    details { border: 1px solid #cbd5e1; border-radius: .75rem; margin: 1rem 0; padding: 1rem; }
-    details.recommended { border-color: #f59e0b; background: #fffbeb; }
-    summary { cursor: pointer; font-weight: 700; }
     pre { background: #0f172a; color: #dbeafe; padding: 1rem; border-radius: .6rem; white-space: pre-wrap; overflow-wrap: anywhere; }
     .ok { color: #047857; font-weight: 700; }
     .bad { color: #b91c1c; font-weight: 700; }
@@ -294,15 +259,6 @@ function renderLoginPage() {
   </p>
   <p id="authLink"></p>
   <div id="deviceWarning" class="bad"></div>
-  <details id="apiFallback">
-    <summary>API key fallback</summary>
-    <p class="muted">Use this only if device authentication returns 403 or does not produce a URL. The key is sent only to this local Docker bridge and piped into <code>codex login --with-api-key</code>; it is not stored by the Web app.</p>
-    <p>
-      <input id="apiKey" type="password" placeholder="sk-..." style="width: min(100%, 520px); padding: .65rem; border: 1px solid #cbd5e1; border-radius: .5rem;">
-      <button id="apiLogin" class="secondary">Login with API key</button>
-    </p>
-    <p id="apiResult" class="muted"></p>
-  </details>
   <pre id="output">No login session started.</pre>
   <script>
     let sessionId = null;
@@ -327,7 +283,7 @@ function renderLoginPage() {
           authWindow.document.body.innerHTML = '<p>Codex CLI did not return an authentication URL.</p><pre>' + escapeHtml(session.output || 'No output.') + '</pre><p>Please return to the login helper tab.</p>';
         }
         if (!session.url) {
-          highlightApiFallback(session.output);
+          showDeviceAuthFailure(session.output);
         }
         refreshStatus();
       }
@@ -342,13 +298,10 @@ function renderLoginPage() {
         }
       }
     }
-    function highlightApiFallback(output) {
-      const fallback = document.getElementById('apiFallback');
-      fallback.open = true;
-      fallback.classList.add('recommended');
+    function showDeviceAuthFailure(output) {
       const warning = output && output.includes('403 Forbidden')
-        ? 'Device authentication is currently rejected with 403 Forbidden. Use API key fallback below.'
-        : 'Device authentication did not produce a URL. Use API key fallback below.';
+        ? 'Device authentication is currently rejected with 403 Forbidden. API key login is disabled by project policy.'
+        : 'Device authentication did not produce a URL. API key login is disabled by project policy.';
       document.getElementById('deviceWarning').textContent = warning;
     }
     function escapeHtml(value) {
@@ -375,23 +328,6 @@ function renderLoginPage() {
       pollSession();
     });
     document.getElementById('refresh').addEventListener('click', refreshStatus);
-    document.getElementById('apiLogin').addEventListener('click', async () => {
-      const apiKey = document.getElementById('apiKey').value;
-      document.getElementById('apiResult').textContent = 'Logging in...';
-      const response = await fetch('/login/api-key', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ apiKey })
-      });
-      const result = await response.json();
-      document.getElementById('apiResult').textContent = result.success
-        ? 'Login succeeded. You can close this page and retry Run Extraction.'
-        : 'Login failed: ' + (result.error || result.output || 'unknown error');
-      if (result.success) {
-        document.getElementById('apiKey').value = '';
-      }
-      refreshStatus();
-    });
     refreshStatus();
   </script>
 </body>
@@ -419,19 +355,6 @@ const server = http.createServer(async (request, response) => {
 
     if (request.method === "POST" && url.pathname === "/login/start") {
       writeJson(response, 200, startLogin(defaultCommand));
-      return;
-    }
-
-    if (request.method === "POST" && url.pathname === "/login/api-key") {
-      const body = await readBody(request);
-      const payload = JSON.parse(body || "{}");
-      const apiKey = typeof payload.apiKey === "string" ? payload.apiKey.trim() : "";
-      if (!apiKey) {
-        writeJson(response, 400, { success: false, error: "api_key_required" });
-        return;
-      }
-
-      writeJson(response, 200, await loginWithApiKey(defaultCommand, apiKey));
       return;
     }
 

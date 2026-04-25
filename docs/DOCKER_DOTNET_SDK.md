@@ -66,7 +66,7 @@ If the browser helper cannot extract a login URL from the CLI output, fall back 
 docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login --device-auth
 ```
 
-If device authentication returns `403 Forbidden`, the local login helper also exposes an API-key fallback. Paste an API key into `http://localhost:4517/login`; the key is sent only to the local Docker bridge and piped to `codex login --with-api-key`. Do not commit API keys or place them in `.env`.
+API key login is intentionally disabled for this project. Do not use `codex login --with-api-key`, do not paste OpenAI API keys into the local bridge, and do not place API keys in `.env`. If device authentication returns `403 Forbidden`, Codex CLI extraction is unavailable in that environment until device authentication is allowed.
 
 Then restart Web with the Docker bridge environment:
 
