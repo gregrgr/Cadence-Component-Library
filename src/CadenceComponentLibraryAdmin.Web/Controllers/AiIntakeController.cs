@@ -20,6 +20,7 @@ public sealed class AiIntakeController : Controller
     private readonly IMcpLibraryWorkflowService _workflowService;
     private readonly IAiDatasheetExtractionService _aiExtractionService;
     private readonly IDatasheetTextExtractor _datasheetTextExtractor;
+    private readonly AiExtractionOptions _aiExtractionOptions;
     private readonly CodexCliOptions _codexCliOptions;
 
     public AiIntakeController(
@@ -33,6 +34,7 @@ public sealed class AiIntakeController : Controller
         _workflowService = workflowService;
         _aiExtractionService = aiExtractionService;
         _datasheetTextExtractor = datasheetTextExtractor;
+        _aiExtractionOptions = aiExtractionOptions.Value;
         _codexCliOptions = aiExtractionOptions.Value.CodexCli;
     }
 
@@ -294,7 +296,7 @@ public sealed class AiIntakeController : Controller
         catch (Exception ex) when (ex is InvalidOperationException or TimeoutException or HttpRequestException)
         {
             TempData["ErrorMessage"] = $"AI extraction failed: {ex.Message}";
-            if (IsCodexLoginRequired(ex.Message))
+            if (IsCodexCliMode())
             {
                 TempData["CodexLoginUrl"] = BuildCodexLoginUrl();
             }
@@ -452,10 +454,11 @@ public sealed class AiIntakeController : Controller
         return $"{publicBridgeUrl}/login";
     }
 
-    private static bool IsCodexLoginRequired(string message)
+    private bool IsCodexCliMode()
     {
-        return message.Contains("not logged in", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("login", StringComparison.OrdinalIgnoreCase);
+        return _codexCliOptions.Enabled
+            || string.Equals(_aiExtractionOptions.Mode, "CodexCli", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(_aiExtractionOptions.Mode, "Codex", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string BuildExtractionDraftJson(ExternalComponentImport import)

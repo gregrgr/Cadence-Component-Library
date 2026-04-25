@@ -99,7 +99,8 @@ public sealed class AiIntakeControllerTests
                     LibraryRoot = "library/Cadence"
                 })),
             new StubAiDatasheetExtractionService(new JsonSchemaValidationService()),
-            new LocalPdfTextExtractor());
+            new LocalPdfTextExtractor(),
+            Options.Create(new AiExtractionOptions()));
 
         IdentityManagementTestHelper.AttachControllerContext(controller, Guid.NewGuid().ToString("N"), "user@test.local", roles);
         controller.TempData = new TempDataDictionary(controller.HttpContext, new TestTempDataProvider());
