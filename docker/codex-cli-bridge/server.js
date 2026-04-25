@@ -193,7 +193,7 @@ function startLogin(command) {
   };
 
   const appendOutput = chunk => {
-    session.output += chunk;
+    session.output += stripAnsi(chunk);
     session.output = session.output.slice(-20_000);
     session.url ??= extractFirstUrl(session.output);
   };
@@ -225,6 +225,10 @@ function startLogin(command) {
 function extractFirstUrl(text) {
   const match = text.match(/https:\/\/[^\s"'<>]+/i);
   return match ? match[0] : null;
+}
+
+function stripAnsi(text) {
+  return String(text).replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, "");
 }
 
 function renderLoginPage() {
