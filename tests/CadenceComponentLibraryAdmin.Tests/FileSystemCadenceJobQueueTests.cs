@@ -96,6 +96,29 @@ public sealed class FileSystemCadenceJobQueueTests : IDisposable
         Assert.Equal(CadenceBuildJobStatus.Succeeded, storedJob.Status);
     }
 
+    [Fact]
+    public async Task DevelopmentSimulator_MarksPendingJobSucceededAndHashesReport()
+    {
+        await using var dbContext = CreateDbContext();
+        var queue = CreateQueue(dbContext);
+        var simulator = new DevelopmentCadenceJobSimulator(queue, Options.Create(CreateOptions()));
+        var job = CreateJob(dbContext, CadenceBuildJobType.CaptureSymbol, """
+        {"action":"create_symbol","overwritePolicy":"fail_if_exists","specJson":"{\"pins\":[]}","jobId":1}
+        """);
+        await queue.EnqueueAsync(job);
+
+        var result = await simulator.SimulateSuccessAsync(job.Id, "test-user");
+
+        Assert.Equal(CadenceBuildJobStatus.Succeeded, result.Status);
+        var storedJob = await dbContext.CadenceBuildJobs.Include(x => x.Artifacts).SingleAsync();
+        var artifact = Assert.Single(storedJob.Artifacts);
+        Assert.Equal(CadenceBuildArtifactType.Report, artifact.ArtifactType);
+        Assert.True(File.Exists(artifact.FilePath));
+        Assert.False(string.IsNullOrWhiteSpace(artifact.Sha256));
+        Assert.True(File.Exists(Path.Combine(_root, "capture", "done", $"{job.Id}.job.json")));
+        Assert.True(File.Exists(Path.Combine(_root, "capture", "done", $"{job.Id}.result.json")));
+    }
+
     private ApplicationDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()

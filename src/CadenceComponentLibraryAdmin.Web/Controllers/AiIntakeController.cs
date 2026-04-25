@@ -20,6 +20,8 @@ public sealed class AiIntakeController : Controller
     private readonly IMcpLibraryWorkflowService _workflowService;
     private readonly IAiDatasheetExtractionService _aiExtractionService;
     private readonly IDatasheetTextExtractor _datasheetTextExtractor;
+    private readonly ICadenceJobSimulator? _cadenceJobSimulator;
+    private readonly IHostEnvironment? _hostEnvironment;
     private readonly AiExtractionOptions _aiExtractionOptions;
     private readonly CodexCliOptions _codexCliOptions;
 
@@ -28,12 +30,16 @@ public sealed class AiIntakeController : Controller
         IMcpLibraryWorkflowService workflowService,
         IAiDatasheetExtractionService aiExtractionService,
         IDatasheetTextExtractor datasheetTextExtractor,
-        IOptions<AiExtractionOptions> aiExtractionOptions)
+        IOptions<AiExtractionOptions> aiExtractionOptions,
+        ICadenceJobSimulator? cadenceJobSimulator = null,
+        IHostEnvironment? hostEnvironment = null)
     {
         _dbContext = dbContext;
         _workflowService = workflowService;
         _aiExtractionService = aiExtractionService;
         _datasheetTextExtractor = datasheetTextExtractor;
+        _cadenceJobSimulator = cadenceJobSimulator;
+        _hostEnvironment = hostEnvironment;
         _aiExtractionOptions = aiExtractionOptions.Value;
         _codexCliOptions = aiExtractionOptions.Value.CodexCli;
     }
@@ -399,8 +405,38 @@ public sealed class AiIntakeController : Controller
         return View(new AiIntakeJobsViewModel
         {
             Extraction = extraction,
-            Jobs = jobs
+            Jobs = jobs,
+            CanSimulateJobs = CanUseDevelopmentJobSimulator()
         });
+    }
+
+    [HttpPost("{id:long}/Jobs/{jobId:long}/SimulateSuccess")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SimulateJobSuccess(long id, long jobId, CancellationToken cancellationToken)
+    {
+        if (!CanUseDevelopmentJobSimulator())
+        {
+            return NotFound();
+        }
+
+        if (!(User.IsInRole("Admin") || User.IsInRole("Librarian")))
+        {
+            return Forbid();
+        }
+
+        var jobExists = await _dbContext.CadenceBuildJobs
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == jobId && x.AiDatasheetExtractionId == id, cancellationToken);
+        if (!jobExists)
+        {
+            return NotFound();
+        }
+
+        var actor = User.Identity?.Name ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "development-user";
+        var result = await _cadenceJobSimulator!.SimulateSuccessAsync(jobId, actor, cancellationToken);
+
+        TempData["SuccessMessage"] = $"Development simulator completed job #{result.JobId}.";
+        return RedirectToAction(nameof(Jobs), new { id });
     }
 
     [HttpGet("{id:long}/Verification")]
@@ -459,6 +495,13 @@ public sealed class AiIntakeController : Controller
         return _codexCliOptions.Enabled
             || string.Equals(_aiExtractionOptions.Mode, "CodexCli", StringComparison.OrdinalIgnoreCase)
             || string.Equals(_aiExtractionOptions.Mode, "Codex", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool CanUseDevelopmentJobSimulator()
+    {
+        return _cadenceJobSimulator is not null
+            && _hostEnvironment?.IsDevelopment() == true
+            && (User.IsInRole("Admin") || User.IsInRole("Librarian"));
     }
 
     private static bool IsRecoverableExtractionFailure(Exception ex, CancellationToken cancellationToken)

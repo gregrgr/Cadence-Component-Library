@@ -1,4 +1,5 @@
 @model CadenceComponentLibraryAdmin.Web.Models.AiIntakeJobsViewModel
+@using CadenceComponentLibraryAdmin.Domain.Enums
 
 @{
     ViewData["Title"] = "AI Intake Jobs";
@@ -25,13 +26,17 @@
                     <th>Created</th>
                     <th>Artifacts</th>
                     <th>Error</th>
+                    @if (Model.CanSimulateJobs)
+                    {
+                        <th>Development</th>
+                    }
                 </tr>
                 </thead>
                 <tbody>
                 @if (Model.Jobs.Count == 0)
                 {
                     <tr>
-                        <td colspan="7" class="text-muted">No jobs queued yet.</td>
+                        <td colspan="@(Model.CanSimulateJobs ? 8 : 7)" class="text-muted">No jobs queued yet.</td>
                     </tr>
                 }
                 else
@@ -60,6 +65,22 @@
                                 }
                             </td>
                             <td class="text-danger small">@job.ErrorMessage</td>
+                            @if (Model.CanSimulateJobs)
+                            {
+                                <td>
+                                    @if (job.Status == CadenceBuildJobStatus.Pending)
+                                    {
+                                        <form asp-action="SimulateJobSuccess" asp-route-id="@Model.Extraction.Id" asp-route-jobId="@job.Id" method="post" onsubmit="return confirm('Simulate this Cadence job as succeeded? No real Cadence tools will be executed.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">Simulate Success</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not available</span>
+                                    }
+                                </td>
+                            }
                         </tr>
                     }
                 }

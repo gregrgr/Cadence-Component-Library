@@ -60,6 +60,7 @@ public sealed class AiIntakeJobsViewModel
 {
     public AiDatasheetExtraction Extraction { get; init; } = null!;
     public IReadOnlyList<CadenceBuildJob> Jobs { get; init; } = [];
+    public bool CanSimulateJobs { get; init; }
 }
 
 public sealed class AiIntakeVerificationViewModel

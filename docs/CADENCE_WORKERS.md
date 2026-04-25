@@ -76,6 +76,21 @@ When files exist on disk:
 - the path is persisted
 - the artifact remains associated with the originating `CadenceBuildJob`
 
+## Development simulator
+
+In `Development`, Admin and Librarian users can use the Jobs page simulator to complete a pending job without launching Cadence tools.
+
+The simulator:
+
+- moves the queue file through the same `pending` -> `running` -> `done` lifecycle
+- writes a simulation report artifact under `CadenceAutomation:LibraryRoot/_simulated-workers`
+- records the report as a `CadenceBuildArtifact`
+- computes `SHA256` through the same artifact hashing path
+- never executes Capture Tcl or Allegro SKILL
+- never creates approved parts or publishes CIS release data
+
+This is a local validation aid only. Production Cadence output must still come from reviewed worker scripts running inside the appropriate Cadence environment.
+
 ## Safety rules
 
 - no raw script execution from user input
