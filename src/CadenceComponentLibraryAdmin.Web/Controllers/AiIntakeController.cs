@@ -293,7 +293,7 @@ public sealed class AiIntakeController : Controller
                     extraction.FootprintSpecJson),
                 cancellationToken);
         }
-        catch (Exception ex) when (ex is InvalidOperationException or TimeoutException or HttpRequestException)
+        catch (Exception ex) when (IsRecoverableExtractionFailure(ex, cancellationToken))
         {
             TempData["ErrorMessage"] = $"AI extraction failed: {ex.Message}";
             if (IsCodexCliMode())
@@ -459,6 +459,14 @@ public sealed class AiIntakeController : Controller
         return _codexCliOptions.Enabled
             || string.Equals(_aiExtractionOptions.Mode, "CodexCli", StringComparison.OrdinalIgnoreCase)
             || string.Equals(_aiExtractionOptions.Mode, "Codex", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsRecoverableExtractionFailure(Exception ex, CancellationToken cancellationToken)
+    {
+        return ex is InvalidOperationException
+            || ex is TimeoutException
+            || ex is HttpRequestException
+            || (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested);
     }
 
     private static string BuildExtractionDraftJson(ExternalComponentImport import)

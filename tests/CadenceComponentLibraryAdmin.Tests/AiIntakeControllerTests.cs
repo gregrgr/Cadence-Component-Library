@@ -85,7 +85,49 @@ public sealed class AiIntakeControllerTests
         Assert.Equal(CadenceBuildJobType.CaptureSymbol, job.JobType);
     }
 
-    private static AiIntakeController CreateController(ApplicationDbContext dbContext, params string[] roles)
+    [Fact]
+    public async Task RunExtraction_TaskCanceled_ShowsErrorInsteadOfThrowing()
+    {
+        await using var dbContext = CreateDbContext();
+        var extraction = await SeedExtractionAsync(dbContext, AiDatasheetExtractionStatus.Draft);
+        var controller = CreateController(
+            dbContext,
+            new ThrowingAiDatasheetExtractionService(new TaskCanceledException("bridge timeout")),
+            new AiExtractionOptions
+            {
+                Mode = "CodexCli",
+                CodexCli = new CodexCliOptions
+                {
+                    Enabled = true,
+                    PublicBridgeUrl = "http://localhost:4517"
+                }
+            },
+            "Designer");
+
+        var result = await controller.RunExtraction(extraction.Id, CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(AiIntakeController.Details), redirect.ActionName);
+        Assert.Contains("AI extraction failed", Assert.IsType<string>(controller.TempData["ErrorMessage"]));
+        Assert.Equal("http://localhost:4517/login", controller.TempData["CodexLoginUrl"]);
+    }
+
+    private static AiIntakeController CreateController(
+        ApplicationDbContext dbContext,
+        params string[] roles)
+    {
+        return CreateController(
+            dbContext,
+            new StubAiDatasheetExtractionService(new JsonSchemaValidationService()),
+            new AiExtractionOptions(),
+            roles);
+    }
+
+    private static AiIntakeController CreateController(
+        ApplicationDbContext dbContext,
+        IAiDatasheetExtractionService aiExtractionService,
+        AiExtractionOptions aiExtractionOptions,
+        params string[] roles)
     {
         var controller = new AiIntakeController(
             dbContext,
@@ -98,9 +140,9 @@ public sealed class AiIntakeControllerTests
                     AllegroQueuePath = "storage/jobs/allegro",
                     LibraryRoot = "library/Cadence"
                 })),
-            new StubAiDatasheetExtractionService(new JsonSchemaValidationService()),
+            aiExtractionService,
             new LocalPdfTextExtractor(),
-            Options.Create(new AiExtractionOptions()));
+            Options.Create(aiExtractionOptions));
 
         IdentityManagementTestHelper.AttachControllerContext(controller, Guid.NewGuid().ToString("N"), "user@test.local", roles);
         controller.TempData = new TempDataDictionary(controller.HttpContext, new TestTempDataProvider());
@@ -151,6 +193,16 @@ public sealed class AiIntakeControllerTests
 
         public void SaveTempData(HttpContext context, IDictionary<string, object> values)
         {
+        }
+    }
+
+    private sealed class ThrowingAiDatasheetExtractionService(Exception exception) : IAiDatasheetExtractionService
+    {
+        public Task<AiDatasheetExtractionRunResult> RunExtractionAsync(
+            AiDatasheetExtractionRunRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<AiDatasheetExtractionRunResult>(exception);
         }
     }
 }

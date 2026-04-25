@@ -51,8 +51,12 @@ builder.Services.AddScoped<IMcpLibraryWorkflowService, McpLibraryWorkflowService
 builder.Services.AddScoped<IDatasheetTextExtractor, LocalPdfTextExtractor>();
 builder.Services.AddScoped<IJsonSchemaValidationService, JsonSchemaValidationService>();
 builder.Services.AddHttpClient<OpenAiCompatibleDatasheetExtractionService>();
-builder.Services.AddHttpClient<CodexCliHttpBridgeRunner>();
-builder.Services.AddScoped<ICodexCliRunner, CodexCliHttpBridgeRunner>();
+builder.Services.AddHttpClient<ICodexCliRunner, CodexCliHttpBridgeRunner>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<IOptions<AiExtractionOptions>>().Value.CodexCli;
+    var timeoutSeconds = Math.Clamp(options.TimeoutSeconds + 30, 30, 1900);
+    client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+});
 builder.Services.AddScoped<CodexCliDatasheetExtractionService>();
 builder.Services.AddScoped<StubAiDatasheetExtractionService>();
 builder.Services.AddScoped<IAiDatasheetExtractionService>(serviceProvider =>
