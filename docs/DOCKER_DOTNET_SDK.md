@@ -58,12 +58,12 @@ If Codex CLI authentication is required, use the bridge login helper from the ho
 http://localhost:4517/login
 ```
 
-Click `Start login and open authentication page`. The helper starts `codex login` inside the `codex-cli` container and opens the authentication URL if the CLI prints one. The login state is stored in the Docker volume `codex-cli-home`.
+Click `Start login and open authentication page`. The helper starts `codex login --device-auth` inside the `codex-cli` container and opens the authentication URL if the CLI prints one. Device authentication avoids localhost callback failures between the host browser and the Docker container. The login state is stored in the Docker volume `codex-cli-home`.
 
-If the browser helper cannot extract a login URL from the CLI output, fall back to an attached container login:
+If the browser helper cannot extract a login URL from the CLI output, fall back to an attached container device login:
 
 ```powershell
-docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login
+docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login --device-auth
 ```
 
 Then restart Web with the Docker bridge environment:

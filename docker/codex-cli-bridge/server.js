@@ -179,7 +179,7 @@ function cryptoRandomId() {
 
 function startLogin(command) {
   const sessionId = cryptoRandomId();
-  const child = spawn(command, ["login"], {
+  const child = spawn(command, ["login", "--device-auth"], {
     stdio: ["pipe", "pipe", "pipe"],
     env: process.env
   });
@@ -246,8 +246,8 @@ function renderLoginPage() {
 </head>
 <body>
   <h1>Codex CLI Login</h1>
-  <p>This page starts <code>codex login</code> inside the Docker <code>codex-cli</code> container. If Codex prints an authentication URL, this page opens it in a new browser tab.</p>
-  <p class="muted">The browser may block popups. If that happens, use the authentication URL shown below.</p>
+  <p>This page starts <code>codex login --device-auth</code> inside the Docker <code>codex-cli</code> container. Device authentication avoids localhost callback failures between the host browser and the container.</p>
+  <p class="muted">The browser may block popups. If that happens, use the authentication URL and code shown below.</p>
   <p id="status">Checking login status...</p>
   <p>
     <button id="start">Start login and open authentication page</button>
