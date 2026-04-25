@@ -1,0 +1,48 @@
+@page
+@model CadenceComponentLibraryAdmin.Web.Areas.Identity.Pages.Account.LoginModel
+@using CadenceComponentLibraryAdmin.Web
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+
+@{
+    ViewData["Title"] = Localizer["Login"];
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card page-card">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-2">@Localizer["Login"]</h1>
+                <p class="text-muted">@Localizer["Sign in to manage the component library."]</p>
+
+                <form method="post">
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label">@Localizer["Email"]</label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label">@Localizer["Password"]</label>
+                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="Input.RememberMe" class="form-check-input" />
+                        <label asp-for="Input.RememberMe" class="form-check-label">@Localizer["Remember me"]</label>
+                    </div>
+
+                    <button id="login-submit" type="submit" class="w-100 btn btn-primary">@Localizer["Login"]</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

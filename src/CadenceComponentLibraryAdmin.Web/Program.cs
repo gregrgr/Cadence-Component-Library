@@ -5,9 +5,11 @@ using CadenceComponentLibraryAdmin.Infrastructure.Services;
 using CadenceComponentLibraryAdmin.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.IO;
@@ -15,7 +17,10 @@ using System.IO;
 var builder = WebApplication.CreateBuilder(args);
 var bootstrapAdminOptions = builder.Configuration.GetSection("BootstrapAdmin").Get<BootstrapAdminOptions>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization()
+    .AddDataAnnotationsLocalization();
 builder.Services.AddRazorPages();
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
 builder.Services.Configure<ExternalImportOptions>(builder.Configuration.GetSection("ExternalImports"));
@@ -109,6 +114,17 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 var app = builder.Build();
+var supportedCultures = new[]
+{
+    new CultureInfo("en-US"),
+    new CultureInfo("zh-CN")
+};
+var localizationOptions = new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en-US"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+};
 var applySchemaChangesOnStartup =
     app.Environment.IsDevelopment() ||
     app.Configuration.GetValue<bool>("Database:ApplySchemaChangesOnStartup");
@@ -120,6 +136,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+app.UseRequestLocalization(localizationOptions);
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

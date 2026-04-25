@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Cadence Component Library Admin" xml:space="preserve">
+    <value>Cadence 元器件库管理</value>
+  </data>
+  <data name="Navigation" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>仪表盘</value>
+  </data>
+  <data name="Online Candidates" xml:space="preserve">
+    <value>在线候选料</value>
+  </data>
+  <data name="External Imports - EasyEDA/LCSC" xml:space="preserve">
+    <value>外部导入 - EasyEDA/LCSC</value>
+  </data>
+  <data name="AI Intake" xml:space="preserve">
+    <value>AI 导入评审</value>
+  </data>
+  <data name="Company Parts" xml:space="preserve">
+    <value>公司物料</value>
+  </data>
+  <data name="Manufacturer Parts" xml:space="preserve">
+    <value>制造商料号</value>
+  </data>
+  <data name="Symbol Families" xml:space="preserve">
+    <value>符号族</value>
+  </data>
+  <data name="Package Families" xml:space="preserve">
+    <value>封装族</value>
+  </data>
+  <data name="Footprint Variants" xml:space="preserve">
+    <value>封装变体</value>
+  </data>
+  <data name="Alternates" xml:space="preserve">
+    <value>替代料</value>
+  </data>
+  <data name="Approval Queue" xml:space="preserve">
+    <value>审批队列</value>
+  </data>
+  <data name="Quality Reports" xml:space="preserve">
+    <value>质量报告</value>
+  </data>
+  <data name="Change Logs" xml:space="preserve">
+    <value>变更记录</value>
+  </data>
+  <data name="Library Releases" xml:space="preserve">
+    <value>库发布</value>
+  </data>
+  <data name="Admin Users" xml:space="preserve">
+    <value>用户管理</value>
+  </data>
+  <data name="Admin Roles" xml:space="preserve">
+    <value>角色管理</value>
+  </data>
+  <data name="Personal-grade library administration for OrCAD Capture CIS and Allegro." xml:space="preserve">
+    <value>面向 OrCAD Capture CIS 与 Allegro 的元器件库管理。</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>登录</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>退出登录</value>
+  </data>
+  <data name="Sign in to manage the component library." xml:space="preserve">
+    <value>登录后管理元器件库。</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>邮箱</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="Remember me" xml:space="preserve">
+    <value>记住我</value>
+  </data>
+  <data name="Invalid login attempt." xml:space="preserve">
+    <value>登录失败，请检查邮箱和密码。</value>
+  </data>
+  <data name="This account is locked." xml:space="preserve">
+    <value>此账号已被锁定。</value>
+  </data>
+</root>

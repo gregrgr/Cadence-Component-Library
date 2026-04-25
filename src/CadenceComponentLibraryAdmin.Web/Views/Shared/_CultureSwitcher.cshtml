@@ -1,0 +1,19 @@
+@using System.Globalization
+@using CadenceComponentLibraryAdmin.Web
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+
+@{
+    var currentCulture = CultureInfo.CurrentUICulture.Name;
+    var returnUrl = Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString;
+}
+
+<form asp-area="" asp-controller="Localization" asp-action="SetLanguage" method="post" class="d-flex align-items-center gap-2">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+    <label class="small text-muted" for="culture-select">@Localizer["Language"]</label>
+    <select id="culture-select" name="culture" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="@Localizer["Language"]">
+        <option value="en-US" selected="@(string.Equals(currentCulture, "en-US", StringComparison.OrdinalIgnoreCase))">English</option>
+        <option value="zh-CN" selected="@(string.Equals(currentCulture, "zh-CN", StringComparison.OrdinalIgnoreCase))">中文</option>
+    </select>
+</form>
