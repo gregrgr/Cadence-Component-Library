@@ -130,7 +130,15 @@ The supported local Docker path uses a dedicated `codex-cli` service. The Web co
 docker compose --env-file .env.example -f docker-compose.yml up -d --build codex-cli
 ```
 
-If the Codex CLI inside the container needs authentication, run login inside the container so credentials are stored in the Docker volume `codex-cli-home`:
+If the Codex CLI inside the container needs authentication, open the bridge login helper from the host browser:
+
+```text
+http://localhost:4517/login
+```
+
+The helper starts `codex login` inside the `codex-cli` container and opens the authentication URL if the CLI prints one. Credentials remain in the Docker volume `codex-cli-home`.
+
+If the browser helper cannot extract a login URL from the CLI output, run login in an attached container:
 
 ```powershell
 docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login
@@ -143,6 +151,7 @@ $env:AI_EXTRACTION_MODE="CodexCli"
 $env:AI_CODEXCLI_ENABLED="true"
 $env:AI_CODEXCLI_TRANSPORT="HttpBridge"
 $env:AI_CODEXCLI_BRIDGE_URL="http://codex-cli:4517"
+$env:AI_CODEXCLI_PUBLIC_BRIDGE_URL="http://localhost:4517"
 docker compose --env-file .env.example -f docker-compose.yml up -d --build web
 ```
 
@@ -155,6 +164,9 @@ Docker Web -> codex-cli:4517 -> codex exec inside the codex-cli container
 The `codex-cli` container installs the CLI with `npm install -g @openai/codex` at image build time. Its bridge only exposes:
 
 - `GET /health`
+- `GET /login`
+- `GET /login/status`
+- `POST /login/start`
 - `POST /extract`
 
 If `AI_CODEXCLI_BRIDGE_TOKEN` is configured, the Web container sends it as `X-Codex-Bridge-Token` and the bridge validates it.

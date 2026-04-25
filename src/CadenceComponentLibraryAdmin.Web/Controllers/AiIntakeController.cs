@@ -3,10 +3,12 @@ using CadenceComponentLibraryAdmin.Application.Interfaces;
 using CadenceComponentLibraryAdmin.Domain.Entities;
 using CadenceComponentLibraryAdmin.Domain.Enums;
 using CadenceComponentLibraryAdmin.Infrastructure.Data;
+using CadenceComponentLibraryAdmin.Infrastructure.Services;
 using CadenceComponentLibraryAdmin.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CadenceComponentLibraryAdmin.Web.Controllers;
 
@@ -18,17 +20,20 @@ public sealed class AiIntakeController : Controller
     private readonly IMcpLibraryWorkflowService _workflowService;
     private readonly IAiDatasheetExtractionService _aiExtractionService;
     private readonly IDatasheetTextExtractor _datasheetTextExtractor;
+    private readonly CodexCliOptions _codexCliOptions;
 
     public AiIntakeController(
         ApplicationDbContext dbContext,
         IMcpLibraryWorkflowService workflowService,
         IAiDatasheetExtractionService aiExtractionService,
-        IDatasheetTextExtractor datasheetTextExtractor)
+        IDatasheetTextExtractor datasheetTextExtractor,
+        IOptions<AiExtractionOptions> aiExtractionOptions)
     {
         _dbContext = dbContext;
         _workflowService = workflowService;
         _aiExtractionService = aiExtractionService;
         _datasheetTextExtractor = datasheetTextExtractor;
+        _codexCliOptions = aiExtractionOptions.Value.CodexCli;
     }
 
     [HttpGet("")]
@@ -289,6 +294,11 @@ public sealed class AiIntakeController : Controller
         catch (Exception ex) when (ex is InvalidOperationException or TimeoutException or HttpRequestException)
         {
             TempData["ErrorMessage"] = $"AI extraction failed: {ex.Message}";
+            if (IsCodexLoginRequired(ex.Message))
+            {
+                TempData["CodexLoginUrl"] = BuildCodexLoginUrl();
+            }
+
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -431,6 +441,21 @@ public sealed class AiIntakeController : Controller
         {
             ModelState.AddModelError(fieldName, $"Invalid JSON: {ex.Message}");
         }
+    }
+
+    private string BuildCodexLoginUrl()
+    {
+        var publicBridgeUrl = string.IsNullOrWhiteSpace(_codexCliOptions.PublicBridgeUrl)
+            ? "http://localhost:4517"
+            : _codexCliOptions.PublicBridgeUrl.TrimEnd('/');
+
+        return $"{publicBridgeUrl}/login";
+    }
+
+    private static bool IsCodexLoginRequired(string message)
+    {
+        return message.Contains("not logged in", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("login", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string BuildExtractionDraftJson(ExternalComponentImport import)

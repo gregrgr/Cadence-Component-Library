@@ -27,5 +27,6 @@ public sealed class CodexCliOptions
     public int TimeoutSeconds { get; set; } = 180;
     public string? WorkingDirectory { get; set; }
     public string BridgeUrl { get; set; } = "http://codex-cli:4517";
+    public string PublicBridgeUrl { get; set; } = "http://localhost:4517";
     public string? BridgeToken { get; set; }
 }

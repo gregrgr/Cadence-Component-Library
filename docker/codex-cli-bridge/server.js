@@ -7,6 +7,7 @@ const path = require("node:path");
 const port = Number.parseInt(process.env.PORT || "4517", 10);
 const bridgeToken = process.env.CODEX_BRIDGE_TOKEN || "";
 const defaultCommand = process.env.CODEX_COMMAND || "codex";
+const loginSessions = new Map();
 
 function writeJson(response, statusCode, body) {
   const json = JSON.stringify(body);
@@ -15,6 +16,14 @@ function writeJson(response, statusCode, body) {
     "content-length": Buffer.byteLength(json)
   });
   response.end(json);
+}
+
+function writeHtml(response, statusCode, body) {
+  response.writeHead(statusCode, {
+    "content-type": "text/html; charset=utf-8",
+    "content-length": Buffer.byteLength(body)
+  });
+  response.end(body);
 }
 
 function readBody(request) {
@@ -104,6 +113,13 @@ async function runCodex(request) {
 }
 
 async function assertLoggedIn(command) {
+  const result = await getLoginStatus(command);
+  if (!result.loggedIn) {
+    throw new Error(`Codex CLI is not logged in inside the codex-cli container. ${result.message}`);
+  }
+}
+
+async function getLoginStatus(command) {
   const child = spawn(command, ["login", "status"], {
     stdio: ["ignore", "pipe", "pipe"],
     env: process.env
@@ -121,10 +137,8 @@ async function assertLoggedIn(command) {
   });
 
   const exitCode = await waitForExit(child, 10);
-  if (exitCode !== 0) {
-    const message = (stdout || stderr || "Not logged in").trim();
-    throw new Error(`Codex CLI is not logged in inside the codex-cli container. ${message}`);
-  }
+  const message = (stdout || stderr || (exitCode === 0 ? "Logged in" : "Not logged in")).trim();
+  return { loggedIn: exitCode === 0, message };
 }
 
 function waitForExit(child, timeoutSeconds) {
@@ -163,12 +177,179 @@ function cryptoRandomId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
+function startLogin(command) {
+  const sessionId = cryptoRandomId();
+  const child = spawn(command, ["login"], {
+    stdio: ["pipe", "pipe", "pipe"],
+    env: process.env
+  });
+
+  const session = {
+    id: sessionId,
+    output: "",
+    url: null,
+    exitCode: null,
+    createdAt: new Date().toISOString()
+  };
+
+  const appendOutput = chunk => {
+    session.output += chunk;
+    session.output = session.output.slice(-20_000);
+    session.url ??= extractFirstUrl(session.output);
+  };
+
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", appendOutput);
+  child.stderr.on("data", appendOutput);
+  child.on("close", code => {
+    session.exitCode = code ?? 1;
+  });
+  child.on("error", error => {
+    session.output += `\n${error.message}`;
+    session.exitCode = 1;
+  });
+
+  loginSessions.set(sessionId, { session, child });
+  setTimeout(() => {
+    const entry = loginSessions.get(sessionId);
+    if (entry && entry.session.exitCode === null) {
+      entry.child.kill("SIGTERM");
+    }
+    loginSessions.delete(sessionId);
+  }, 10 * 60 * 1000);
+
+  return session;
+}
+
+function extractFirstUrl(text) {
+  const match = text.match(/https:\/\/[^\s"'<>]+/i);
+  return match ? match[0] : null;
+}
+
+function renderLoginPage() {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex CLI Login</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 2rem; max-width: 920px; color: #1f2937; }
+    button, a.button { border: 0; border-radius: .5rem; background: #0d6efd; color: white; padding: .7rem 1rem; text-decoration: none; cursor: pointer; display: inline-block; }
+    button.secondary { background: #475569; }
+    pre { background: #0f172a; color: #dbeafe; padding: 1rem; border-radius: .6rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .ok { color: #047857; font-weight: 700; }
+    .bad { color: #b91c1c; font-weight: 700; }
+    .muted { color: #64748b; }
+  </style>
+</head>
+<body>
+  <h1>Codex CLI Login</h1>
+  <p>This page starts <code>codex login</code> inside the Docker <code>codex-cli</code> container. If Codex prints an authentication URL, this page opens it in a new browser tab.</p>
+  <p class="muted">The browser may block popups. If that happens, use the authentication URL shown below.</p>
+  <p id="status">Checking login status...</p>
+  <p>
+    <button id="start">Start login and open authentication page</button>
+    <button id="refresh" class="secondary">Refresh status</button>
+  </p>
+  <p id="authLink"></p>
+  <pre id="output">No login session started.</pre>
+  <script>
+    let sessionId = null;
+    let authWindow = null;
+    let openedUrl = null;
+    async function refreshStatus() {
+      const response = await fetch('/login/status');
+      const status = await response.json();
+      document.getElementById('status').innerHTML = status.loggedIn
+        ? '<span class="ok">Logged in</span>: ' + escapeHtml(status.message || '')
+        : '<span class="bad">Not logged in</span>: ' + escapeHtml(status.message || '');
+    }
+    async function pollSession() {
+      if (!sessionId) return;
+      const response = await fetch('/login/session/' + encodeURIComponent(sessionId));
+      const session = await response.json();
+      renderSession(session);
+      if (session.exitCode === null) {
+        setTimeout(pollSession, 1500);
+      } else {
+        refreshStatus();
+      }
+    }
+    function renderSession(session) {
+      document.getElementById('output').textContent = session.output || 'Waiting for Codex CLI output...';
+      if (session.url) {
+        document.getElementById('authLink').innerHTML = '<a class="button" target="_blank" rel="noopener" href="' + session.url + '">Open authentication page</a>';
+        if (authWindow && openedUrl !== session.url) {
+          authWindow.location = session.url;
+          openedUrl = session.url;
+        }
+      }
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    document.getElementById('start').addEventListener('click', async () => {
+      document.getElementById('output').textContent = 'Starting codex login...';
+      authWindow = window.open('', '_blank');
+      if (authWindow) {
+        authWindow.document.write('<p>Waiting for Codex CLI authentication URL...</p>');
+      }
+      const response = await fetch('/login/start', { method: 'POST' });
+      const session = await response.json();
+      sessionId = session.id;
+      renderSession(session);
+      if (session.url) {
+        if (authWindow) {
+          authWindow.location = session.url;
+        } else {
+          window.open(session.url, '_blank', 'noopener');
+        }
+        openedUrl = session.url;
+      }
+      pollSession();
+    });
+    document.getElementById('refresh').addEventListener('click', refreshStatus);
+    refreshStatus();
+  </script>
+</body>
+</html>`;
+}
+
 const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
     console.log(`${new Date().toISOString()} ${request.method} ${url.pathname}`);
     if (request.method === "GET" && url.pathname === "/health") {
       writeJson(response, 200, { status: "ok" });
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/login") {
+      writeHtml(response, 200, renderLoginPage());
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/login/status") {
+      writeJson(response, 200, await getLoginStatus(defaultCommand));
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/login/start") {
+      writeJson(response, 200, startLogin(defaultCommand));
+      return;
+    }
+
+    const loginSessionMatch = url.pathname.match(/^\/login\/session\/([^/]+)$/);
+    if (request.method === "GET" && loginSessionMatch) {
+      const entry = loginSessions.get(loginSessionMatch[1]);
+      if (!entry) {
+        writeJson(response, 404, { error: "login_session_not_found" });
+        return;
+      }
+
+      writeJson(response, 200, entry.session);
       return;
     }
 

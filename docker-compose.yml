@@ -45,6 +45,7 @@ services:
       AiExtraction__CodexCli__TimeoutSeconds: "${AI_CODEXCLI_TIMEOUT_SECONDS:-180}"
       AiExtraction__CodexCli__WorkingDirectory: "${AI_CODEXCLI_WORKING_DIRECTORY:-}"
       AiExtraction__CodexCli__BridgeUrl: "${AI_CODEXCLI_BRIDGE_URL:-http://codex-cli:4517}"
+      AiExtraction__CodexCli__PublicBridgeUrl: "${AI_CODEXCLI_PUBLIC_BRIDGE_URL:-http://localhost:4517}"
       AiExtraction__CodexCli__BridgeToken: "${AI_CODEXCLI_BRIDGE_TOKEN:-}"
     ports:
       - "8080:8080"
