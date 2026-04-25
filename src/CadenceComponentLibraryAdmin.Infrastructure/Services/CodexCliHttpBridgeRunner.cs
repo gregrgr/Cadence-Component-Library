@@ -56,7 +56,7 @@ public sealed class CodexCliHttpBridgeRunner : ICodexCliRunner
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Codex CLI bridge returned HTTP {StatusCode}.", (int)response.StatusCode);
-            throw new InvalidOperationException($"Codex CLI bridge returned HTTP {(int)response.StatusCode}.");
+            throw new InvalidOperationException($"Codex CLI bridge returned HTTP {(int)response.StatusCode}: {ReadError(rawBody)}");
         }
 
         try
@@ -80,5 +80,27 @@ public sealed class CodexCliHttpBridgeRunner : ICodexCliRunner
         public int ExitCode { get; set; }
         public string? Output { get; set; }
         public string? ErrorOutput { get; set; }
+    }
+
+    private static string ReadError(string rawBody)
+    {
+        if (string.IsNullOrWhiteSpace(rawBody))
+        {
+            return "No response body.";
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(rawBody);
+            if (document.RootElement.TryGetProperty("error", out var error) && error.ValueKind == JsonValueKind.String)
+            {
+                return error.GetString() ?? "Unknown error.";
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return rawBody.Length > 500 ? rawBody[..500] : rawBody;
     }
 }

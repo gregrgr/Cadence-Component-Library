@@ -38,6 +38,8 @@ async function runCodex(request) {
     throw new Error("Request body must include a prompt string.");
   }
 
+  await assertLoggedIn(stringOrDefault(request.command, defaultCommand));
+
   const outputPath = path.join(os.tmpdir(), `cadence-codex-${cryptoRandomId()}.json`);
   const timeoutSeconds = clampInteger(request.timeoutSeconds, 10, 1800, 180);
   const command = stringOrDefault(request.command, defaultCommand);
@@ -73,6 +75,7 @@ async function runCodex(request) {
     env: process.env
   });
 
+  console.log(`Starting codex exec with sandbox=${sandbox}, timeout=${timeoutSeconds}s`);
   let stdout = "";
   let stderr = "";
   child.stdout.setEncoding("utf8");
@@ -88,6 +91,7 @@ async function runCodex(request) {
   child.stdin.end();
 
   const exitCode = await waitForExit(child, timeoutSeconds);
+  console.log(`codex exec exited with code ${exitCode}`);
   let output = stdout;
   try {
     output = await fs.readFile(outputPath, "utf8");
@@ -97,6 +101,30 @@ async function runCodex(request) {
   }
 
   return { exitCode, output, errorOutput: stderr };
+}
+
+async function assertLoggedIn(command) {
+  const child = spawn(command, ["login", "status"], {
+    stdio: ["ignore", "pipe", "pipe"],
+    env: process.env
+  });
+
+  let stdout = "";
+  let stderr = "";
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", chunk => {
+    stdout += chunk;
+  });
+  child.stderr.on("data", chunk => {
+    stderr += chunk;
+  });
+
+  const exitCode = await waitForExit(child, 10);
+  if (exitCode !== 0) {
+    const message = (stdout || stderr || "Not logged in").trim();
+    throw new Error(`Codex CLI is not logged in inside the codex-cli container. ${message}`);
+  }
 }
 
 function waitForExit(child, timeoutSeconds) {
@@ -138,6 +166,7 @@ function cryptoRandomId() {
 const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
+    console.log(`${new Date().toISOString()} ${request.method} ${url.pathname}`);
     if (request.method === "GET" && url.pathname === "/health") {
       writeJson(response, 200, { status: "ok" });
       return;
@@ -157,6 +186,7 @@ const server = http.createServer(async (request, response) => {
     const result = await runCodex(JSON.parse(body || "{}"));
     writeJson(response, 200, result);
   } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
     writeJson(response, 500, { error: error instanceof Error ? error.message : String(error) });
   }
 });

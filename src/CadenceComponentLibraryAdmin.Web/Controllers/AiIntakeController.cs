@@ -266,21 +266,31 @@ public sealed class AiIntakeController : Controller
             return NotFound();
         }
 
-        var textResult = await _datasheetTextExtractor.ExtractTextAsync(
-            new Application.DTOs.DatasheetTextExtractionRequest(extraction.Id, extraction.DatasheetAssetPath),
-            cancellationToken);
+        Application.DTOs.DatasheetTextExtractionResult textResult;
+        Application.DTOs.AiDatasheetExtractionRunResult result;
+        try
+        {
+            textResult = await _datasheetTextExtractor.ExtractTextAsync(
+                new Application.DTOs.DatasheetTextExtractionRequest(extraction.Id, extraction.DatasheetAssetPath),
+                cancellationToken);
 
-        var result = await _aiExtractionService.RunExtractionAsync(
-            new Application.DTOs.AiDatasheetExtractionRunRequest(
-                extraction.Id,
-                extraction.Manufacturer,
-                extraction.ManufacturerPartNumber,
-                extraction.DatasheetAssetPath,
-                textResult.ExtractedText,
-                extraction.ExtractionJson,
-                extraction.SymbolSpecJson,
-                extraction.FootprintSpecJson),
-            cancellationToken);
+            result = await _aiExtractionService.RunExtractionAsync(
+                new Application.DTOs.AiDatasheetExtractionRunRequest(
+                    extraction.Id,
+                    extraction.Manufacturer,
+                    extraction.ManufacturerPartNumber,
+                    extraction.DatasheetAssetPath,
+                    textResult.ExtractedText,
+                    extraction.ExtractionJson,
+                    extraction.SymbolSpecJson,
+                    extraction.FootprintSpecJson),
+                cancellationToken);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or TimeoutException or HttpRequestException)
+        {
+            TempData["ErrorMessage"] = $"AI extraction failed: {ex.Message}";
+            return RedirectToAction(nameof(Details), new { id });
+        }
 
         if (result.ValidationErrors.Count > 0)
         {
