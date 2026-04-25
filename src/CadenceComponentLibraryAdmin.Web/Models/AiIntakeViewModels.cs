@@ -67,4 +67,5 @@ public sealed class AiIntakeVerificationViewModel
 {
     public AiDatasheetExtraction Extraction { get; init; } = null!;
     public LibraryVerificationReport? Report { get; init; }
+    public bool CanGenerateDevelopmentReport { get; init; }
 }

@@ -30,7 +30,16 @@
         <h1 class="h4 mb-1">Verification</h1>
         <p class="text-muted mb-0">Latest verification report for extraction #@Model.Extraction.Id.</p>
     </div>
-    <a asp-action="Details" asp-route-id="@Model.Extraction.Id" class="btn btn-outline-secondary">Back</a>
+    <div class="d-flex gap-2">
+        @if (Model.CanGenerateDevelopmentReport)
+        {
+            <form asp-action="GenerateDevelopmentVerificationReport" asp-route-id="@Model.Extraction.Id" method="post" onsubmit="return confirm('Generate a development verification report from the current job/artifact state?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-warning">Generate Dev Report</button>
+            </form>
+        }
+        <a asp-action="Details" asp-route-id="@Model.Extraction.Id" class="btn btn-outline-secondary">Back</a>
+    </div>
 </div>
 
 <div class="card page-card">

@@ -21,6 +21,7 @@ public sealed class AiIntakeController : Controller
     private readonly IAiDatasheetExtractionService _aiExtractionService;
     private readonly IDatasheetTextExtractor _datasheetTextExtractor;
     private readonly ICadenceJobSimulator? _cadenceJobSimulator;
+    private readonly ICadenceVerificationReportService? _cadenceVerificationReportService;
     private readonly IHostEnvironment? _hostEnvironment;
     private readonly AiExtractionOptions _aiExtractionOptions;
     private readonly CodexCliOptions _codexCliOptions;
@@ -32,6 +33,7 @@ public sealed class AiIntakeController : Controller
         IDatasheetTextExtractor datasheetTextExtractor,
         IOptions<AiExtractionOptions> aiExtractionOptions,
         ICadenceJobSimulator? cadenceJobSimulator = null,
+        ICadenceVerificationReportService? cadenceVerificationReportService = null,
         IHostEnvironment? hostEnvironment = null)
     {
         _dbContext = dbContext;
@@ -39,6 +41,7 @@ public sealed class AiIntakeController : Controller
         _aiExtractionService = aiExtractionService;
         _datasheetTextExtractor = datasheetTextExtractor;
         _cadenceJobSimulator = cadenceJobSimulator;
+        _cadenceVerificationReportService = cadenceVerificationReportService;
         _hostEnvironment = hostEnvironment;
         _aiExtractionOptions = aiExtractionOptions.Value;
         _codexCliOptions = aiExtractionOptions.Value.CodexCli;
@@ -459,8 +462,30 @@ public sealed class AiIntakeController : Controller
         return View(new AiIntakeVerificationViewModel
         {
             Extraction = extraction,
-            Report = report
+            Report = report,
+            CanGenerateDevelopmentReport = CanGenerateDevelopmentVerificationReport()
         });
+    }
+
+    [HttpPost("{id:long}/Verification/GenerateDevelopmentReport")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GenerateDevelopmentVerificationReport(long id, CancellationToken cancellationToken)
+    {
+        if (!CanGenerateDevelopmentVerificationReport())
+        {
+            return NotFound();
+        }
+
+        if (!(User.IsInRole("Admin") || User.IsInRole("Librarian")))
+        {
+            return Forbid();
+        }
+
+        var actor = User.Identity?.Name ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "development-user";
+        var result = await _cadenceVerificationReportService!.GenerateDevelopmentReportAsync(id, actor, cancellationToken);
+
+        TempData["SuccessMessage"] = $"Development verification report #{result.ReportId} generated.";
+        return RedirectToAction(nameof(Verification), new { id });
     }
 
     private void ValidateJson(string value, string fieldName)
@@ -500,6 +525,13 @@ public sealed class AiIntakeController : Controller
     private bool CanUseDevelopmentJobSimulator()
     {
         return _cadenceJobSimulator is not null
+            && _hostEnvironment?.IsDevelopment() == true
+            && (User.IsInRole("Admin") || User.IsInRole("Librarian"));
+    }
+
+    private bool CanGenerateDevelopmentVerificationReport()
+    {
+        return _cadenceVerificationReportService is not null
             && _hostEnvironment?.IsDevelopment() == true
             && (User.IsInRole("Admin") || User.IsInRole("Librarian"));
     }

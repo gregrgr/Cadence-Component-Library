@@ -56,6 +56,7 @@ builder.Services.AddScoped<IExternalImportService, ExternalImportService>();
 builder.Services.AddScoped<ICadenceBuildJobQueue, FileSystemCadenceJobQueue>();
 builder.Services.AddScoped<ICadenceJobQueue, FileSystemCadenceJobQueue>();
 builder.Services.AddScoped<ICadenceJobSimulator, DevelopmentCadenceJobSimulator>();
+builder.Services.AddScoped<ICadenceVerificationReportService, CadenceVerificationReportService>();
 builder.Services.AddScoped<IMcpLibraryWorkflowService, McpLibraryWorkflowService>();
 builder.Services.AddScoped<IDatasheetTextExtractor, LocalPdfTextExtractor>();
 builder.Services.AddScoped<IJsonSchemaValidationService, JsonSchemaValidationService>();

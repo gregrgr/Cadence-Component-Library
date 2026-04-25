@@ -17,6 +17,7 @@ builder.Services.AddScoped<IMcpLibraryWorkflowService, McpLibraryWorkflowService
 builder.Services.AddScoped<ICadenceBuildJobQueue, FileSystemCadenceJobQueue>();
 builder.Services.AddScoped<ICadenceJobQueue, FileSystemCadenceJobQueue>();
 builder.Services.AddScoped<ICadenceJobSimulator, DevelopmentCadenceJobSimulator>();
+builder.Services.AddScoped<ICadenceVerificationReportService, CadenceVerificationReportService>();
 builder.Services.AddScoped<LibraryMcpToolCatalog>();
 
 // Placeholder adapter: this keeps the console project buildable until the official

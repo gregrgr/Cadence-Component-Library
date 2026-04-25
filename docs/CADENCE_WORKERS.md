@@ -91,6 +91,22 @@ The simulator:
 
 This is a local validation aid only. Production Cadence output must still come from reviewed worker scripts running inside the appropriate Cadence environment.
 
+## Development verification reports
+
+In `Development`, Admin and Librarian users can generate a verification report from the current job and artifact state after symbol and footprint jobs succeed.
+
+The development report:
+
+- writes a `LibraryVerificationReport`
+- records symbol and footprint report JSON
+- reports `Pass` only when both Capture symbol and Allegro footprint jobs have succeeded
+- includes recorded artifact paths and hashes
+- explicitly marks the report as simulated
+- never creates approved `CompanyPart` rows
+- never publishes to CIS release views
+
+Production verification should be generated from real Capture and Allegro worker results, not from the development simulator.
+
 ## Safety rules
 
 - no raw script execution from user input
