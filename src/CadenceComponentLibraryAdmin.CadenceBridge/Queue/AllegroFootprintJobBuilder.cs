@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CadenceComponentLibraryAdmin.Application.Cadence;
 using CadenceComponentLibraryAdmin.Domain.Entities;
 using CadenceComponentLibraryAdmin.Infrastructure.Services;
 
@@ -6,8 +7,8 @@ namespace CadenceComponentLibraryAdmin.CadenceBridge.Queue;
 
 public sealed class AllegroFootprintJobBuilder
 {
-    public const string AllowedAction = "create_footprint";
-    public const string DefaultOverwritePolicy = "fail_if_exists";
+    public const string AllowedAction = CadenceQueueActions.CreateFootprint;
+    public const string DefaultOverwritePolicy = CadenceQueueActions.FailIfExists;
 
     public string Build(
         CadenceBuildJob job,

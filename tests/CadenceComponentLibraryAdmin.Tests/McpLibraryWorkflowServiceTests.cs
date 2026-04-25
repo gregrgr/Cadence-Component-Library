@@ -1,4 +1,7 @@
+using System.Text.Json;
 using CadenceComponentLibraryAdmin.Application.DTOs;
+using CadenceComponentLibraryAdmin.Application.Interfaces;
+using CadenceComponentLibraryAdmin.CadenceBridge.Queue;
 using CadenceComponentLibraryAdmin.Domain.Entities;
 using CadenceComponentLibraryAdmin.Domain.Enums;
 using CadenceComponentLibraryAdmin.Infrastructure.Data;
@@ -30,21 +33,47 @@ public sealed class McpLibraryWorkflowServiceTests
     }
 
     [Fact]
-    public async Task EnqueuedJobs_WritePendingStatus()
+    public async Task EnqueuedJobs_WritePendingStatusAndQueueFiles()
     {
-        await using var dbContext = CreateDbContext();
-        var candidate = await CreateCandidateAsync(dbContext, "Texas Instruments", "SN74LVC1G14DBVR");
-        var extraction = await CreateExtractionAsync(dbContext, candidate.Id, AiDatasheetExtractionStatus.ApprovedForBuild);
-        var service = CreateService(dbContext);
+        var root = Path.Combine(Path.GetTempPath(), "cadence-workflow-tests", Guid.NewGuid().ToString("N"));
 
-        var capture = await service.EnqueueCaptureSymbolJobAsync(new CadenceEnqueueJobRequest(extraction.Id));
-        var allegro = await service.EnqueueAllegroFootprintJobAsync(new CadenceEnqueueJobRequest(extraction.Id));
+        try
+        {
+            await using var dbContext = CreateDbContext();
+            var candidate = await CreateCandidateAsync(dbContext, "Texas Instruments", "SN74LVC1G14DBVR");
+            var extraction = await CreateExtractionAsync(dbContext, candidate.Id, AiDatasheetExtractionStatus.ApprovedForBuild);
+            var options = CreateOptions(root);
+            var queue = new FileSystemCadenceJobQueue(dbContext, Options.Create(options));
+            var service = CreateService(dbContext, options, queue);
 
-        Assert.Equal(CadenceBuildJobStatus.Pending, capture.Status);
-        Assert.Equal(CadenceBuildJobType.CaptureSymbol, capture.JobType);
-        Assert.Equal(CadenceBuildJobStatus.Pending, allegro.Status);
-        Assert.Equal(CadenceBuildJobType.AllegroFootprint, allegro.JobType);
-        Assert.Equal(2, await dbContext.CadenceBuildJobs.CountAsync());
+            var capture = await service.EnqueueCaptureSymbolJobAsync(new CadenceEnqueueJobRequest(extraction.Id));
+            var allegro = await service.EnqueueAllegroFootprintJobAsync(new CadenceEnqueueJobRequest(extraction.Id));
+
+            Assert.Equal(CadenceBuildJobStatus.Pending, capture.Status);
+            Assert.Equal(CadenceBuildJobType.CaptureSymbol, capture.JobType);
+            Assert.Equal(CadenceBuildJobStatus.Pending, allegro.Status);
+            Assert.Equal(CadenceBuildJobType.AllegroFootprint, allegro.JobType);
+            Assert.Equal(2, await dbContext.CadenceBuildJobs.CountAsync());
+
+            var captureFile = Path.Combine(root, "capture", "pending", $"{capture.JobId}.job.json");
+            var allegroFile = Path.Combine(root, "allegro", "pending", $"{allegro.JobId}.job.json");
+            Assert.True(File.Exists(captureFile));
+            Assert.True(File.Exists(allegroFile));
+
+            using var captureDocument = JsonDocument.Parse(await File.ReadAllTextAsync(captureFile));
+            using var allegroDocument = JsonDocument.Parse(await File.ReadAllTextAsync(allegroFile));
+            Assert.Equal("create_symbol", captureDocument.RootElement.GetProperty("action").GetString());
+            Assert.Equal("fail_if_exists", captureDocument.RootElement.GetProperty("overwritePolicy").GetString());
+            Assert.Equal("create_footprint", allegroDocument.RootElement.GetProperty("action").GetString());
+            Assert.Equal("fail_if_exists", allegroDocument.RootElement.GetProperty("overwritePolicy").GetString());
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 
     [Fact]
@@ -121,17 +150,26 @@ public sealed class McpLibraryWorkflowServiceTests
         Assert.Equal(AiDatasheetExtractionStatus.ApprovedForBuild, approved.Status);
     }
 
-    private static McpLibraryWorkflowService CreateService(ApplicationDbContext dbContext)
+    private static McpLibraryWorkflowService CreateService(
+        ApplicationDbContext dbContext,
+        CadenceAutomationOptions? options = null,
+        ICadenceBuildJobQueue? jobQueue = null)
     {
         return new McpLibraryWorkflowService(
             dbContext,
-            Options.Create(new CadenceAutomationOptions
-            {
-                JobRoot = "storage/cadence-jobs",
-                CaptureQueuePath = "storage/cadence-jobs/capture",
-                AllegroQueuePath = "storage/cadence-jobs/allegro",
-                LibraryRoot = "library/Cadence"
-            }));
+            Options.Create(options ?? CreateOptions("storage/cadence-jobs")),
+            jobQueue);
+    }
+
+    private static CadenceAutomationOptions CreateOptions(string root)
+    {
+        return new CadenceAutomationOptions
+        {
+            JobRoot = Path.Combine(root, "jobs"),
+            CaptureQueuePath = Path.Combine(root, "capture"),
+            AllegroQueuePath = Path.Combine(root, "allegro"),
+            LibraryRoot = Path.Combine(root, "library")
+        };
     }
 
     private static ApplicationDbContext CreateDbContext()

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using CadenceComponentLibraryAdmin.Application.Cadence;
 using CadenceComponentLibraryAdmin.Domain.Entities;
 using CadenceComponentLibraryAdmin.Domain.Enums;
 using CadenceComponentLibraryAdmin.Infrastructure.Data;
@@ -129,8 +130,8 @@ public sealed class FileSystemCadenceJobQueue : ICadenceJobQueue
 
         var expectedAction = job.JobType switch
         {
-            CadenceBuildJobType.CaptureSymbol => CaptureSymbolJobBuilder.AllowedAction,
-            CadenceBuildJobType.AllegroFootprint => AllegroFootprintJobBuilder.AllowedAction,
+            CadenceBuildJobType.CaptureSymbol => CadenceQueueActions.CreateSymbol,
+            CadenceBuildJobType.AllegroFootprint => CadenceQueueActions.CreateFootprint,
             _ => throw new InvalidOperationException($"Unsupported job type '{job.JobType}'.")
         };
 

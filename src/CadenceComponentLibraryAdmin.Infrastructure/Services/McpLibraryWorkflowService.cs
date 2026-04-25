@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CadenceComponentLibraryAdmin.Application.Cadence;
 using CadenceComponentLibraryAdmin.Application.DTOs;
 using CadenceComponentLibraryAdmin.Application.Interfaces;
 using CadenceComponentLibraryAdmin.Domain.Entities;
@@ -13,13 +14,16 @@ public sealed class McpLibraryWorkflowService : IMcpLibraryWorkflowService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly CadenceAutomationOptions _options;
+    private readonly ICadenceBuildJobQueue? _jobQueue;
 
     public McpLibraryWorkflowService(
         ApplicationDbContext dbContext,
-        IOptions<CadenceAutomationOptions> options)
+        IOptions<CadenceAutomationOptions> options,
+        ICadenceBuildJobQueue? jobQueue = null)
     {
         _dbContext = dbContext;
         _options = options.Value;
+        _jobQueue = jobQueue;
     }
 
     public async Task<LibraryCandidateSummaryResult> GetCandidateAsync(
@@ -337,20 +341,12 @@ public sealed class McpLibraryWorkflowService : IMcpLibraryWorkflowService
             throw new InvalidOperationException("Extraction must be ApprovedForBuild before a Cadence build job can be enqueued.");
         }
 
-        var payload = JsonSerializer.Serialize(new
-        {
-            extractionId,
-            queuePath,
-            libraryRoot = _options.LibraryRoot,
-            jobType = jobType.ToString()
-        });
-
         var job = new CadenceBuildJob
         {
             CandidateId = extraction.CandidateId,
             AiDatasheetExtractionId = extraction.Id,
             JobType = jobType,
-            InputJson = payload,
+            InputJson = "{}",
             Status = CadenceBuildJobStatus.Pending,
             ToolName = toolName,
             ToolVersion = null,
@@ -360,7 +356,57 @@ public sealed class McpLibraryWorkflowService : IMcpLibraryWorkflowService
         _dbContext.CadenceBuildJobs.Add(job);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        job.InputJson = BuildQueueJobPayload(job, extraction, jobType, queuePath);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (_jobQueue is not null)
+        {
+            try
+            {
+                await _jobQueue.EnqueueAsync(job, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                job.Status = CadenceBuildJobStatus.Failed;
+                job.ErrorMessage = $"Queue file write failed: {ex.Message}";
+                job.FinishedAtUtc = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                throw;
+            }
+        }
+
         return await GetJobStatusAsync(job.Id, cancellationToken);
+    }
+
+    private string BuildQueueJobPayload(
+        CadenceBuildJob job,
+        AiDatasheetExtraction extraction,
+        CadenceBuildJobType jobType,
+        string queuePath)
+    {
+        var (queueFamily, action, specJson) = jobType switch
+        {
+            CadenceBuildJobType.CaptureSymbol => ("capture", CadenceQueueActions.CreateSymbol, extraction.SymbolSpecJson),
+            CadenceBuildJobType.AllegroFootprint => ("allegro", CadenceQueueActions.CreateFootprint, extraction.FootprintSpecJson),
+            _ => throw new InvalidOperationException($"Unsupported job type '{jobType}'.")
+        };
+
+        return JsonSerializer.Serialize(new
+        {
+            jobId = job.Id,
+            queueFamily,
+            action,
+            overwritePolicy = CadenceQueueActions.FailIfExists,
+            candidateId = job.CandidateId,
+            aiDatasheetExtractionId = job.AiDatasheetExtractionId,
+            manufacturer = extraction.Manufacturer,
+            manufacturerPartNumber = extraction.ManufacturerPartNumber,
+            libraryRoot = _options.LibraryRoot,
+            specJson,
+            resultJsonPath = Path.Combine(queuePath, "done", $"{job.Id}.result.json").Replace('\\', '/'),
+            requestedByTool = job.ToolName,
+            requestedAtUtc = job.CreatedAtUtc.ToString("O")
+        }, JsonSerializerOptions.Web);
     }
 
     private async Task<AiDatasheetExtraction> GetExtractionAsync(long extractionId, CancellationToken cancellationToken)

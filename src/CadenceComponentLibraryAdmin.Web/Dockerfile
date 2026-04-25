@@ -4,6 +4,7 @@ WORKDIR /src
 COPY src/CadenceComponentLibraryAdmin.Domain/CadenceComponentLibraryAdmin.Domain.csproj src/CadenceComponentLibraryAdmin.Domain/
 COPY src/CadenceComponentLibraryAdmin.Application/CadenceComponentLibraryAdmin.Application.csproj src/CadenceComponentLibraryAdmin.Application/
 COPY src/CadenceComponentLibraryAdmin.Infrastructure/CadenceComponentLibraryAdmin.Infrastructure.csproj src/CadenceComponentLibraryAdmin.Infrastructure/
+COPY src/CadenceComponentLibraryAdmin.CadenceBridge/CadenceComponentLibraryAdmin.CadenceBridge.csproj src/CadenceComponentLibraryAdmin.CadenceBridge/
 COPY src/CadenceComponentLibraryAdmin.Web/CadenceComponentLibraryAdmin.Web.csproj src/CadenceComponentLibraryAdmin.Web/
 
 RUN dotnet restore src/CadenceComponentLibraryAdmin.Web/CadenceComponentLibraryAdmin.Web.csproj

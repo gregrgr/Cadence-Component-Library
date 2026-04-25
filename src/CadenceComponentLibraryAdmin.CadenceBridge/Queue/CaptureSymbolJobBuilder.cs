@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CadenceComponentLibraryAdmin.Application.Cadence;
 using CadenceComponentLibraryAdmin.Domain.Entities;
 using CadenceComponentLibraryAdmin.Infrastructure.Services;
 
@@ -6,8 +7,8 @@ namespace CadenceComponentLibraryAdmin.CadenceBridge.Queue;
 
 public sealed class CaptureSymbolJobBuilder
 {
-    public const string AllowedAction = "create_symbol";
-    public const string DefaultOverwritePolicy = "fail_if_exists";
+    public const string AllowedAction = CadenceQueueActions.CreateSymbol;
+    public const string DefaultOverwritePolicy = CadenceQueueActions.FailIfExists;
 
     public string Build(
         CadenceBuildJob job,

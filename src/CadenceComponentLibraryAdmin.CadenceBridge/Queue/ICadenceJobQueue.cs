@@ -1,10 +1,10 @@
+using CadenceComponentLibraryAdmin.Application.Interfaces;
 using CadenceComponentLibraryAdmin.Domain.Entities;
 
 namespace CadenceComponentLibraryAdmin.CadenceBridge.Queue;
 
-public interface ICadenceJobQueue
+public interface ICadenceJobQueue : ICadenceBuildJobQueue
 {
-    Task EnqueueAsync(CadenceBuildJob job, CancellationToken cancellationToken = default);
     Task<CadenceBuildJob> GetJobAsync(long jobId, CancellationToken cancellationToken = default);
     Task MarkRunningAsync(long jobId, CancellationToken cancellationToken = default);
     Task MarkSucceededAsync(

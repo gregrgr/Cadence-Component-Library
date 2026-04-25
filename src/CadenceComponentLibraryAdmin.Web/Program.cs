@@ -1,4 +1,5 @@
 using CadenceComponentLibraryAdmin.Application.Interfaces;
+using CadenceComponentLibraryAdmin.CadenceBridge.Queue;
 using CadenceComponentLibraryAdmin.Infrastructure.Data;
 using CadenceComponentLibraryAdmin.Infrastructure.Seed;
 using CadenceComponentLibraryAdmin.Infrastructure.Services;
@@ -52,6 +53,7 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 builder.Services.AddScoped<IAdminAuditService, AdminAuditService>();
 builder.Services.AddScoped<IChangeLogService, ChangeLogService>();
 builder.Services.AddScoped<IExternalImportService, ExternalImportService>();
+builder.Services.AddScoped<ICadenceBuildJobQueue, FileSystemCadenceJobQueue>();
 builder.Services.AddScoped<IMcpLibraryWorkflowService, McpLibraryWorkflowService>();
 builder.Services.AddScoped<IDatasheetTextExtractor, LocalPdfTextExtractor>();
 builder.Services.AddScoped<IJsonSchemaValidationService, JsonSchemaValidationService>();

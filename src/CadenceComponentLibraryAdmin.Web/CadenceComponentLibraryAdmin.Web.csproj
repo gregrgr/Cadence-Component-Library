@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CadenceComponentLibraryAdmin.Application\CadenceComponentLibraryAdmin.Application.csproj" />
+    <ProjectReference Include="..\CadenceComponentLibraryAdmin.CadenceBridge\CadenceComponentLibraryAdmin.CadenceBridge.csproj" />
     <ProjectReference Include="..\CadenceComponentLibraryAdmin.Domain\CadenceComponentLibraryAdmin.Domain.csproj" />
     <ProjectReference Include="..\CadenceComponentLibraryAdmin.Infrastructure\CadenceComponentLibraryAdmin.Infrastructure.csproj" />
   </ItemGroup>
