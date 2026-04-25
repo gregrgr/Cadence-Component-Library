@@ -274,6 +274,9 @@ function renderLoginPage() {
     body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 2rem; max-width: 920px; color: #1f2937; }
     button, a.button { border: 0; border-radius: .5rem; background: #0d6efd; color: white; padding: .7rem 1rem; text-decoration: none; cursor: pointer; display: inline-block; }
     button.secondary { background: #475569; }
+    details { border: 1px solid #cbd5e1; border-radius: .75rem; margin: 1rem 0; padding: 1rem; }
+    details.recommended { border-color: #f59e0b; background: #fffbeb; }
+    summary { cursor: pointer; font-weight: 700; }
     pre { background: #0f172a; color: #dbeafe; padding: 1rem; border-radius: .6rem; white-space: pre-wrap; overflow-wrap: anywhere; }
     .ok { color: #047857; font-weight: 700; }
     .bad { color: #b91c1c; font-weight: 700; }
@@ -290,7 +293,8 @@ function renderLoginPage() {
     <button id="refresh" class="secondary">Refresh status</button>
   </p>
   <p id="authLink"></p>
-  <details>
+  <div id="deviceWarning" class="bad"></div>
+  <details id="apiFallback">
     <summary>API key fallback</summary>
     <p class="muted">Use this only if device authentication returns 403 or does not produce a URL. The key is sent only to this local Docker bridge and piped into <code>codex login --with-api-key</code>; it is not stored by the Web app.</p>
     <p>
@@ -322,6 +326,9 @@ function renderLoginPage() {
         if (!session.url && authWindow) {
           authWindow.document.body.innerHTML = '<p>Codex CLI did not return an authentication URL.</p><pre>' + escapeHtml(session.output || 'No output.') + '</pre><p>Please return to the login helper tab.</p>';
         }
+        if (!session.url) {
+          highlightApiFallback(session.output);
+        }
         refreshStatus();
       }
     }
@@ -334,6 +341,15 @@ function renderLoginPage() {
           openedUrl = session.url;
         }
       }
+    }
+    function highlightApiFallback(output) {
+      const fallback = document.getElementById('apiFallback');
+      fallback.open = true;
+      fallback.classList.add('recommended');
+      const warning = output && output.includes('403 Forbidden')
+        ? 'Device authentication is currently rejected with 403 Forbidden. Use API key fallback below.'
+        : 'Device authentication did not produce a URL. Use API key fallback below.';
+      document.getElementById('deviceWarning').textContent = warning;
     }
     function escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
