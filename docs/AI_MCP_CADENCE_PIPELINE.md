@@ -144,6 +144,8 @@ If the browser helper cannot extract a login URL from the CLI output, run device
 docker compose --env-file .env.example -f docker-compose.yml run --rm --entrypoint codex codex-cli login --device-auth
 ```
 
+If device authentication returns `403 Forbidden`, the local login helper also exposes an API-key fallback. Paste an API key into `http://localhost:4517/login`; the key is sent only to the local Docker bridge and piped to `codex login --with-api-key`. Do not commit API keys or place them in `.env`.
+
 Then start Web with Codex CLI extraction enabled:
 
 ```powershell
@@ -167,6 +169,7 @@ The `codex-cli` container installs the CLI with `npm install -g @openai/codex` a
 - `GET /login`
 - `GET /login/status`
 - `POST /login/start`
+- `POST /login/api-key`
 - `POST /extract`
 
 If `AI_CODEXCLI_BRIDGE_TOKEN` is configured, the Web container sends it as `X-Codex-Bridge-Token` and the bridge validates it.
